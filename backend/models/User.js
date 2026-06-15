@@ -1,0 +1,35 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const emergencyContactSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  phone: { type: String, required: true },
+  email: { type: String, required: true },
+  hasApp: { type: Boolean, default: false },
+});
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+  profileCompleted: { type: Boolean, default: false },
+  emergencyContact: emergencyContactSchema,
+  createdAt: { type: Date, default: Date.now }
+});
+
+// FIXED: Removed 'next' because it's an async function
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+  
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+  } catch (error) {
+    throw error; // Mongoose will catch this and pass it to the route
+  }
+});
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+module.exports = mongoose.model('User', userSchema);
