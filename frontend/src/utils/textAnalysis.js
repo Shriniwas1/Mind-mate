@@ -1,10 +1,14 @@
 import { pipeline, env } from '@xenova/transformers';
 
 /**
- * LOCAL CONFIGURATION
+ * DEPLOYMENT MODE: Load model from Hugging Face Hub
+ * Model repo: https://huggingface.co/Shriniwas1/mindmate-deberta
+ * 
+ * Previously loaded from local /models/ directory.
+ * Now fetches from HF and caches in browser IndexedDB automatically.
  */
-env.allowRemoteModels = false;
-env.localModelPath = '/models/';
+env.allowRemoteModels = true;
+env.allowLocalModels = false;
 
 let textPipe = null;
 
@@ -18,7 +22,7 @@ function detectRisk(text) {
     'no reason to live',
     'suicide',
     'kill myself',
-    'i don’t want to exist'
+    'i don\'t want to exist'
   ];
 
   const lower = text.toLowerCase();
@@ -89,11 +93,12 @@ function interpretMood(score, confidence, text) {
 export async function analyzeText(text) {
   try {
     if (!textPipe) {
-      console.log('⏳ Initializing local text sentiment model...');
+      console.log('⏳ Loading text sentiment model from Hugging Face...');
       textPipe = await pipeline(
         'text-classification',
-        'text-sentiment'
+        'Shriniwas1/mindmate-deberta' // Hugging Face model repo
       );
+      console.log('✅ Text sentiment model loaded from Hugging Face');
     }
 
     const results = await textPipe(text);
@@ -116,7 +121,7 @@ export async function analyzeText(text) {
     /**
      * Console output for debugging
      */
-    console.log('--- Local Journal Sentiment Analysis ---');
+    console.log('--- Text Sentiment Analysis (Hugging Face) ---');
     console.log(`Emotion Label: ${label}`);
     console.log(`Positivity Score: ${score}`);
     console.log(`AI Confidence: ${(confidence * 100).toFixed(2)}%`);
@@ -125,7 +130,7 @@ export async function analyzeText(text) {
     console.log(`Outlook: ${interpretation.outlook}`);
     console.log(`Reliability: ${interpretation.reliability}`);
     console.log(`Risk Level: ${riskLevel}`);
-    console.log('---------------------------------------');
+    console.log('----------------------------------------------');
 
     /**
      * Structured return → ideal for MongoDB storage + charts
@@ -143,7 +148,7 @@ export async function analyzeText(text) {
     };
 
   } catch (error) {
-    console.error('❌ Local text analysis error:', error);
+    console.error('❌ Text analysis error:', error);
 
     // Safe neutral fallback
     return {

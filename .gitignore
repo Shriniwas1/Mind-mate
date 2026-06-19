@@ -13,9 +13,10 @@ frontend/dist/
 backend/.env
 frontend/.env
 
-# Large model files
+# Large model files (local development only — production loads from Hugging Face)
 backend/model/
 frontend/public/models/
+backend/.model_cache/
 
 # OS and Editor files
 .DS_Store

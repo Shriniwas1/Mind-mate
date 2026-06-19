@@ -3,8 +3,9 @@ import * as faceapi from 'face-api.js';
 let modelsLoaded = false;
 let isInitializing = false;
 
-// Use a reliable CDN for face-api.js models (SsdMobilenetv1 provides max accuracy)
-const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+// ✅ DEPLOYMENT MODE: Load face-api.js models from Hugging Face Hub
+// Previously: https://justadudewhohacks.github.io/face-api.js/models
+const MODEL_URL = 'https://huggingface.co/Shriniwas1/mindmate-deberta/resolve/main/';
 
 export async function loadFaceModels(onProgress) {
   if (modelsLoaded) return true;

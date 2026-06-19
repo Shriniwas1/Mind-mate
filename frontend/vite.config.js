@@ -20,8 +20,12 @@ export default defineConfig({
   server: {
     headers: {
       // Required for SharedArrayBuffer (onnxruntime-web multi-threaded WASM)
+      // Note: These may need to be removed if cross-origin API issues arise
+      // on certain hosting platforms (Vercel/Netlify handle this automatically)
       'Cross-Origin-Embedder-Policy': 'credentialless',
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
+    // Allow access from any host (needed for tunnels, previews, etc.)
+    allowedHosts: 'all',
   },
 })
