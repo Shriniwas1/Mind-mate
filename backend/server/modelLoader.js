@@ -3,13 +3,17 @@ const { env, pipeline } = require('@xenova/transformers');
 
 const modelDir = path.join(__dirname, '..', 'model');
 
-// 🔒 Force local-only loading
-env.allowRemoteModels = false;
-env.allowLocalModels = true;
+const isProd = process.env.NODE_ENV === 'production';
 
-// Point directly to your model folder
-env.localModelPath = path.join(__dirname, '..');
+// 🔒 Configure loading depending on environment
+env.allowRemoteModels = isProd;
+env.allowLocalModels = true;
 env.cacheDir = modelDir;
+
+if (!isProd) {
+  // Point directly to your model folder in local dev
+  env.localModelPath = path.join(__dirname, '..');
+}
 
 let classifierPipeline = null;
 
@@ -21,16 +25,26 @@ async function loadModel() {
   }
 
   try {
-    console.log('🚀 Loading MindMate ONNX model from local disk...');
-
-    classifierPipeline = await pipeline(
-      'text-classification',
-      'model', // folder name inside backend/
-      {
-        local_files_only: true,
-        // optional: device: 'cpu' (default)
-      }
-    );
+    if (isProd) {
+      const hfModelId = process.env.HF_MODEL_ID || 'shriniwasg07/mindmate-deberta';
+      console.log(`🚀 Loading MindMate model from Hugging Face Hub: ${hfModelId}...`);
+      classifierPipeline = await pipeline(
+        'text-classification',
+        hfModelId,
+        {
+          local_files_only: false,
+        }
+      );
+    } else {
+      console.log('🚀 Loading MindMate ONNX model from local disk...');
+      classifierPipeline = await pipeline(
+        'text-classification',
+        'model', // folder name inside backend/
+        {
+          local_files_only: true,
+        }
+      );
+    }
 
     console.log('✅ MindMate ONNX model loaded successfully');
     return classifierPipeline;
@@ -70,4 +84,8 @@ async function predict(text) {
   }
 }
 
-module.exports = { loadModel, predict };
+function isModelLoaded() {
+  return !!classifierPipeline;
+}
+
+module.exports = { loadModel, predict, isModelLoaded };

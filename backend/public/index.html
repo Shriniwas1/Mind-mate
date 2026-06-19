@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindMate AI • Engine Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #1a153b 0%, #0d0b18 70%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.06);
+      --glass-highlight: rgba(255, 255, 255, 0.1);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      
+      /* Harmonious Palette */
+      --color-primary: #8b5cf6; /* Compassionate Purple */
+      --color-primary-glow: rgba(139, 92, 246, 0.4);
+      --color-success: #10b981; /* Healthy Green */
+      --color-success-glow: rgba(16, 185, 129, 0.3);
+      --color-warning: #f59e0b; /* Yellow Warning */
+      --color-error: #ef4444; /* Crisis Red */
+      --color-info: #06b6d4; /* Diagnostic Teal */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #09070f;
+      background-image: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Background glow decorations */
+    .glow-blob {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
+      z-index: -1;
+      filter: blur(40px);
+      pointer-events: none;
+    }
+    .glow-blob.blob-1 { top: -100px; left: -100px; }
+    .glow-blob.blob-2 { bottom: -100px; right: -100px; }
+
+    header {
+      padding: 24px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      background: rgba(13, 11, 24, 0.4);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-glow {
+      font-size: 32px;
+      background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px var(--color-primary-glow));
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .badge-deployment {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+    }
+
+    .main-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 32px;
+      padding: 40px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Sidebar Diagnostics */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .health-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .health-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .health-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--color-warning);
+      box-shadow: 0 0 10px var(--color-warning);
+      transition: all 0.3s ease;
+    }
+
+    .status-dot.healthy {
+      background-color: var(--color-success);
+      box-shadow: 0 0 10px var(--color-success-glow);
+    }
+
+    .status-dot.error {
+      background-color: var(--color-error);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+
+    .health-name {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .health-status {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Diagnostics Table style */
+    .diag-details {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .diag-line {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(255,255,255,0.05);
+      padding-bottom: 6px;
+    }
+    
+    .diag-val {
+      color: var(--color-info);
+    }
+
+    /* Content Area & Tabs */
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .tabs-header {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .tab-btn.active {
+      color: var(--text-main);
+      background: rgba(139, 92, 246, 0.15);
+      box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease-in-out forwards;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Forms and Inputs */
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 8px rgba(139, 92, 246, 0.25);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.2));
+    }
+
+    .btn:hover {
+      filter: drop-shadow(0 4px 16px rgba(139, 92, 246, 0.35));
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      filter: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.15);
+      filter: none;
+    }
+
+    /* Result Console */
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+
+    .console-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .console-panel {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #38bdf8;
+    }
+
+    /* Scores Visualizer */
+    .score-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .score-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .score-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .score-bar-bg {
+      height: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+      width: 0%;
+      border-radius: 99px;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Chat sandbox */
+    .chat-box {
+      border: 1px solid var(--glass-border);
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      height: 350px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: var(--color-primary);
+      color: white;
+      border-bottom-right-radius: 2px;
+    }
+
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-bubble.system {
+      align-self: center;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      font-size: 12px;
+      max-width: 90%;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(0,0,0,0.3);
+      gap: 10px;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px var(--color-primary-glow)); }
+      50% { opacity: 0.8; filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.1)); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        padding: 20px;
+      }
+      header {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-blob blob-1"></div>
+  <div class="glow-blob blob-2"></div>
+
+  <header>
+    <div class="brand-section">
+      <div class="logo-glow">🧠</div>
+      <div>
+        <h1>MindMate AI Engine</h1>
+        <div style="font-size: 11px; color: var(--text-muted)">Diagnostic & Inference Sandbox</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <div id="uptime-display" class="badge" style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">UPTIME: 00:00:00</div>
+      <div class="badge badge-deployment">HF Space • Production</div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    
+    <!-- Sidebar: Realtime Status & Diagnostics -->
+    <div class="sidebar">
+      
+      <div class="glass-card">
+        <div class="card-title">Realtime Health</div>
+        <div class="health-list">
+          
+          <div class="health-item">
+            <div class="health-info">
+              <div id="status-engine" class="status-dot"></div>
+              <span class="health-name">Engine Core</span>
+            </div>
+            <span id="label-engine" class="health-status">Checking...</span>
+          </div>
+
+          <div class="health-item">
+            <div class="health-info">
+              <div id="status-db" class="status-dot"></div>
+              <span class="health-name">Database</span>
+            </div>
+            <span id="label-db" class="health-status">Checking...</span>
+          </div>
+
+          <div class="health-item">
+            <div class="health-info">
+              <div id="status-model" class="status-dot"></div>
+              <span class="health-name">ONNX Classifier</span>
+            </div>
+            <span id="label-model" class="health-status">Checking...</span>
+          </div>
+
+          <div class="health-item">
+            <div class="health-info">
+              <div id="status-groq" class="status-dot"></div>
+              <span class="health-name">AI Chat (Groq)</span>
+            </div>
+            <span id="label-groq" class="health-status">Checking...</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">Engine Metrics</div>
+        <div class="diag-details">
+          <div class="diag-line">
+            <span>Server Mode</span>
+            <span id="val-env" class="diag-val">-</span>
+          </div>
+          <div class="diag-line">
+            <span>Uptime</span>
+            <span id="val-uptime" class="diag-val">-</span>
+          </div>
+          <div class="diag-line">
+            <span>Diagnostics</span>
+            <span id="val-health" class="diag-val">-</span>
+          </div>
+          <div class="diag-line">
+            <span>API Time</span>
+            <span id="val-ping" class="diag-val">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">Auth Token</div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.4; display: flex; flex-direction: column; gap: 8px;">
+          <div>Active sandbox user token:</div>
+          <textarea id="token-display" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; height: 75px; resize: none; background: rgba(0,0,0,0.3); color: var(--color-success); border-color: rgba(16, 185, 129, 0.2);" readonly placeholder="No token saved. Use Auth tab to login/register."></textarea>
+          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; width: 100%;" onclick="clearToken()">Clear Saved Token</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Content Area: Interactive Playgrounds -->
+    <div class="content-area">
+      
+      <div class="tabs-header">
+        <button class="tab-btn active" onclick="switchTab('tab-diagnostics')">Diagnostics</button>
+        <button class="tab-btn" onclick="switchTab('tab-auth')">Auth Sandbox</button>
+        <button class="tab-btn" onclick="switchTab('tab-sentiment')">Sentiment Sandbox</button>
+        <button class="tab-btn" onclick="switchTab('tab-chat')">AI Chat Sandbox</button>
+      </div>
+
+      <!-- Tab: Diagnostics -->
+      <div id="tab-diagnostics" class="tab-content active">
+        <div class="glass-card">
+          <h2 style="font-size: 18px; margin-bottom: 12px;">Diagnostics Logs</h2>
+          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+            Diagnostic details fetched from <code style="font-family: 'JetBrains Mono', monospace; color: var(--color-info);">/api/health</code>.
+          </p>
+          <button class="btn" style="margin-bottom: 16px;" onclick="fetchHealth()">Refresh Health Metrics</button>
+          <div class="console-label">Raw Response JSON</div>
+          <pre id="health-console" class="console-panel">Loading health data...</pre>
+        </div>
+      </div>
+
+      <!-- Tab: Auth Sandbox -->
+      <div id="tab-auth" class="tab-content">
+        <div class="glass-card">
+          <h2 style="font-size: 18px; margin-bottom: 12px;">User Authentication Playground</h2>
+          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+            The AI Chat API requires token authorization. Use this form to create a temporary testing profile or log in with an existing account.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            
+            <!-- Signup Form -->
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <h3 style="font-size: 16px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px;">Register Test User</h3>
+              <div>
+                <label for="reg-name">Full Name</label>
+                <input type="text" id="reg-name" placeholder="Test User">
+              </div>
+              <div>
+                <label for="reg-email">Email Address</label>
+                <input type="email" id="reg-email" placeholder="test@mindmate.com">
+              </div>
+              <div>
+                <label for="reg-password">Password</label>
+                <input type="password" id="reg-password" placeholder="••••••••">
+              </div>
+              <div>
+                <label for="reg-contact-name">Emergency Contact Name</label>
+                <input type="text" id="reg-contact-name" placeholder="Emergency Helper">
+              </div>
+              <div>
+                <label for="reg-contact-email">Emergency Contact Email</label>
+                <input type="email" id="reg-contact-email" placeholder="helper@mindmate.com">
+              </div>
+              <button class="btn" onclick="runRegister()">Register Sandbox Profile</button>
+            </div>
+
+            <!-- Login Form -->
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <h3 style="font-size: 16px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px;">Login Account</h3>
+              <div>
+                <label for="log-email">Email Address</label>
+                <input type="email" id="log-email" placeholder="test@mindmate.com">
+              </div>
+              <div>
+                <label for="log-password">Password</label>
+                <input type="password" id="log-password" placeholder="••••••••">
+              </div>
+              <button class="btn" onclick="runLogin()">Login to Session</button>
+            </div>
+
+          </div>
+
+          <div class="console-header">
+            <span class="console-label">Authentication Logger</span>
+          </div>
+          <pre id="auth-console" class="console-panel" style="color: #a78bfa;">Session logs will appear here...</pre>
+
+        </div>
+      </div>
+
+      <!-- Tab: Sentiment Sandbox -->
+      <div id="tab-sentiment" class="tab-content">
+        <div class="glass-card">
+          <h2 style="font-size: 18px; margin-bottom: 12px;">ONNX Sentiment Sandbox</h2>
+          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+            Write a sentence reflecting a feeling or situation to see how the MindMate classifier classifies the emotions and structures suggestions.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <label for="sentiment-text">Input Text</label>
+              <textarea id="sentiment-text" rows="3" placeholder="I feel so overwhelmed and anxious about my upcoming examinations, I don't know if I can cope..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px;">
+              <button class="btn" onclick="analyzeSentiment()">Analyze Sentiment (Model Predict)</button>
+              <button class="btn btn-secondary" onclick="insertExampleSentiment('happy')">Happy Example</button>
+              <button class="btn btn-secondary" onclick="insertExampleSentiment('anxious')">Anxious Example</button>
+              <button class="btn btn-secondary" onclick="insertExampleSentiment('sad')">Sad Example</button>
+            </div>
+          </div>
+
+          <div id="score-visualizer" class="score-container" style="display: none;">
+            <h3 style="font-size: 15px; font-weight: 500; margin-top: 12px;">Emotion Class Probability Breakdown</h3>
+            <div id="scores-wrapper"></div>
+          </div>
+
+          <div class="console-header">
+            <span class="console-label">Inference Result (JSON Response)</span>
+          </div>
+          <pre id="sentiment-console" class="console-panel">Result output will load here...</pre>
+
+        </div>
+      </div>
+
+      <!-- Tab: AI Chat Sandbox -->
+      <div id="tab-chat" class="tab-content">
+        <div class="glass-card" style="padding-bottom: 12px;">
+          <h2 style="font-size: 18px; margin-bottom: 6px;">AI Chat Assistant Support Tester</h2>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+            Interactive check for the MindMate empathetic AI. Safe prompts are processed with Groq Llama 3.1. Non-mental-health prompts are blocked.
+          </p>
+
+          <div class="chat-box">
+            <div id="chat-messages" class="chat-messages">
+              <div class="chat-bubble assistant">Hello! I am the MindMate compassionate AI. Please type a message to start our session. Note: You must log in or register under the "Auth Sandbox" tab first so we can authenticate your connection.</div>
+            </div>
+            <div class="chat-input-bar">
+              <input type="text" id="chat-input" placeholder="Type a message about how you are feeling..." onkeypress="handleChatKey(event)">
+              <button class="btn" onclick="sendChatMessage()">Send</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer style="margin-top: auto; padding: 24px; text-align: center; border-top: 1px solid var(--glass-border); font-size: 12px; color: var(--text-muted);">
+    MindMate Engine Diagnostics Core • Hugging Face Spaces Deployment Module
+  </footer>
+
+  <script>
+    // Constants
+    const BASE_URL = window.location.origin;
+    let localUptimeSeconds = 0;
+
+    // Load Token from LocalStorage on load
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("sandbox_token");
+      if (token) {
+        document.getElementById("token-display").value = token;
+      }
+      fetchHealth();
+      setInterval(updateLocalUptime, 1000);
+    });
+
+    // Helper functions
+    function saveToken(token) {
+      localStorage.setItem("sandbox_token", token);
+      document.getElementById("token-display").value = token;
+    }
+
+    // Auth Playground
+    function getToken() {
+      return localStorage.getItem("sandbox_token");
+    }
+
+    function clearToken() {
+      localStorage.removeItem("sandbox_token");
+      document.getElementById("token-display").value = "";
+      alert("Saved sandbox auth token cleared.");
+    }
+
+    function updateLocalUptime() {
+      localUptimeSeconds++;
+      const hrs = String(Math.floor(localUptimeSeconds / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((localUptimeSeconds % 3600) / 60)).padStart(2, '0');
+      const secs = String(localUptimeSeconds % 60).padStart(2, '0');
+      document.getElementById("uptime-display").innerText = `UPTIME: ${hrs}:${mins}:${secs}`;
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+      
+      const targetBtn = Array.from(document.querySelectorAll(".tab-btn")).find(btn => btn.innerText.toLowerCase().includes(tabId.replace("tab-", "")));
+      if (targetBtn) targetBtn.classList.add("active");
+      
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) targetContent.classList.add("active");
+    }
+
+    // Diagnostics: Fetch Health
+    async function fetchHealth() {
+      const pingStart = Date.now();
+      const consoleEl = document.getElementById("health-console");
+      consoleEl.innerText = "Loading health checks...";
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/health`);
+        const duration = Date.now() - pingStart;
+        
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        
+        const data = await response.json();
+        consoleEl.innerText = JSON.stringify(data, null, 2);
+        
+        // Update Side Diagnostics
+        updateBadge("status-engine", "label-engine", true, "Healthy");
+        updateBadge("status-db", "label-db", data.database === "connected", data.database === "connected" ? "Connected" : "Offline");
+        updateBadge("status-model", "label-model", data.models?.sentiment === "loaded", data.models?.sentiment === "loaded" ? "Loaded" : "Not Loaded");
+        updateBadge("status-groq", "label-groq", data.groq === true, data.groq === true ? "Available" : "Key Missing");
+
+        document.getElementById("val-env").innerText = data.env;
+        
+        // Format uptime
+        const serverUptime = Math.round(data.uptime || 0);
+        localUptimeSeconds = serverUptime; // Align timer
+        const hrs = String(Math.floor(serverUptime / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((serverUptime % 3600) / 60)).padStart(2, '0');
+        const secs = String(serverUptime % 60).padStart(2, '0');
+        document.getElementById("val-uptime").innerText = `${hrs}:${mins}:${secs}`;
+        
+        document.getElementById("val-health").innerText = data.status;
+        document.getElementById("val-ping").innerText = `${duration}ms`;
+
+      } catch (err) {
+        consoleEl.innerText = `❌ Health Check Failed:\n${err.message}`;
+        updateBadge("status-engine", "label-engine", false, "Unreachable", true);
+        updateBadge("status-db", "label-db", false, "Unknown", true);
+        updateBadge("status-model", "label-model", false, "Unknown", true);
+        updateBadge("status-groq", "label-groq", false, "Unknown", true);
+        document.getElementById("val-env").innerText = "error";
+        document.getElementById("val-uptime").innerText = "error";
+        document.getElementById("val-health").innerText = "error";
+        document.getElementById("val-ping").innerText = "error";
+      }
+    }
+
+    function updateBadge(dotId, labelId, isHealthy, text, isError = false) {
+      const dot = document.getElementById(dotId);
+      const label = document.getElementById(labelId);
+      
+      dot.className = "status-dot";
+      if (isHealthy) {
+        dot.classList.add("healthy");
+      } else if (isError) {
+        dot.classList.add("error");
+      }
+      
+      label.innerText = text;
+      label.style.color = isHealthy ? "var(--color-success)" : isError ? "var(--color-error)" : "var(--color-warning)";
+    }
+
+    // Auth Playground
+    async function runRegister() {
+      const name = document.getElementById("reg-name").value;
+      const email = document.getElementById("reg-email").value;
+      const password = document.getElementById("reg-password").value;
+      const cName = document.getElementById("reg-contact-name").value;
+      const cEmail = document.getElementById("reg-contact-email").value;
+      
+      const consoleEl = document.getElementById("auth-console");
+      consoleEl.innerText = "Registering user profile...";
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            emergencyContact: {
+              name: cName,
+              email: cEmail,
+              phone: "+15550199" // Dummy phone fallback
+            }
+          })
+        });
+
+        const data = await response.json();
+        consoleEl.innerText = JSON.stringify(data, null, 2);
+
+        if (response.ok && data.token) {
+          saveToken(data.token);
+          consoleEl.innerText += "\n\n✅ Registration Successful! Auth Token Saved to Sandbox.";
+        } else {
+          consoleEl.innerText += `\n\n❌ Registration Failed: ${data.error || "Unknown Error"}`;
+        }
+      } catch (err) {
+        consoleEl.innerText = `❌ Fetch Error:\n${err.message}`;
+      }
+    }
+
+    async function runLogin() {
+      const email = document.getElementById("log-email").value;
+      const password = document.getElementById("log-password").value;
+      
+      const consoleEl = document.getElementById("auth-console");
+      consoleEl.innerText = "Logging in...";
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        consoleEl.innerText = JSON.stringify(data, null, 2);
+
+        if (response.ok && data.token) {
+          saveToken(data.token);
+          consoleEl.innerText += "\n\n✅ Login Successful! Session token stored.";
+        } else {
+          consoleEl.innerText += `\n\n❌ Login Failed: ${data.error || "Invalid Credentials"}`;
+        }
+      } catch (err) {
+        consoleEl.innerText = `❌ Fetch Error:\n${err.message}`;
+      }
+    }
+
+    // Sentiment Playground
+    function insertExampleSentiment(type) {
+      const textMap = {
+        happy: "I received some amazing news today! I passed my certification exam and I'm feeling incredibly happy and proud of myself.",
+        anxious: "My chest feels tight and I'm constantly pacing around the room. I have a major presentation tomorrow and I'm terrified I'll mess it up.",
+        sad: "I've been feeling so lonely lately. It feels like nobody cares, and I have spent the last three days inside my room doing nothing."
+      };
+      document.getElementById("sentiment-text").value = textMap[type] || "";
+    }
+
+    async function analyzeSentiment() {
+      const text = document.getElementById("sentiment-text").value;
+      const consoleEl = document.getElementById("sentiment-console");
+      const visEl = document.getElementById("score-visualizer");
+      const wrapperEl = document.getElementById("scores-wrapper");
+      
+      if (!text.trim()) {
+        alert("Please enter some text to analyze.");
+        return;
+      }
+
+      consoleEl.innerText = "Running ONNX model inference...";
+      visEl.style.display = "none";
+      wrapperEl.innerHTML = "";
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/predict`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await response.json();
+        consoleEl.innerText = JSON.stringify(data, null, 2);
+
+        if (response.ok && data.all_scores) {
+          visEl.style.display = "flex";
+          
+          data.all_scores.forEach(scoreItem => {
+            const pct = (scoreItem.score * 100).toFixed(1);
+            const scoreRow = document.createElement("div");
+            scoreRow.className = "score-row";
+            scoreRow.innerHTML = `
+              <div class="score-labels">
+                <span style="font-weight: 500;">${scoreItem.label}</span>
+                <span style="color: var(--text-muted);">${pct}%</span>
+              </div>
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" style="width: 0%;"></div>
+              </div>
+            `;
+            wrapperEl.appendChild(scoreRow);
+            
+            // Trigger animation frame for bar expansion
+            setTimeout(() => {
+              scoreRow.querySelector(".score-bar-fill").style.width = `${pct}%`;
+            }, 50);
+          });
+        }
+      } catch (err) {
+        consoleEl.innerText = `❌ Inference Error:\n${err.message}`;
+      }
+    }
+
+    // AI Chat Support Assistant
+    function handleChatKey(event) {
+      if (event.key === "Enter") {
+        sendChatMessage();
+      }
+    }
+
+    async function sendChatMessage() {
+      const inputEl = document.getElementById("chat-input");
+      const msgText = inputEl.value.trim();
+      const chatMessages = document.getElementById("chat-messages");
+      
+      if (!msgText) return;
+
+      const token = getToken();
+      if (!token) {
+        alert("⚠️ Authentication Required!\nYou must register or log in first under the 'Auth Sandbox' tab to obtain a token for AI chat queries.");
+        switchTab("tab-auth");
+        return;
+      }
+
+      // Add user bubble
+      appendChatBubble("user", msgText);
+      inputEl.value = "";
+
+      // Add thinking placeholder
+      const thinkingEl = appendChatBubble("assistant", "MindMate AI is thinking...");
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/ai/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ message: msgText })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          thinkingEl.innerText = data.response;
+        } else {
+          thinkingEl.remove(); // Remove thinking bubble
+          
+          if (response.status === 401) {
+            appendChatBubble("system", "⚠️ Unauthorized Session. Your token might have expired. Please go to the 'Auth Sandbox' tab and log in again.");
+          } else {
+            appendChatBubble("system", `❌ Error (${response.status}): ${data.error || "Could not generate response"}`);
+          }
+        }
+      } catch (err) {
+        thinkingEl.remove();
+        appendChatBubble("system", `❌ Network Connection Failure: ${err.message}`);
+      }
+    }
+
+    function appendChatBubble(sender, text) {
+      const chatMessages = document.getElementById("chat-messages");
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${sender}`;
+      bubble.innerText = text;
+      chatMessages.appendChild(bubble);
+      
+      // Auto scroll
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return bubble;
+    }
+  </script>
+</body>
+</html>

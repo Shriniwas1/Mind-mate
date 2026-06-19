@@ -2,7 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { loadModel, predict } = require('./server/modelLoader.js');
+const path = require('path');
+const { loadModel, predict, isModelLoaded } = require('./server/modelLoader.js');
 const http = require('http');
 const socketIo = require('socket.io');
 const setupChatHandlers = require('./io/chatHandler.js');
@@ -14,31 +15,48 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Dynamic CORS for socket connections
+      callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST'],
   },
 });
 const PORT = process.env.PORT || 8001;
 
-// ✅ UPDATED CORS: Specifically allows your Vite frontend and headers
-// CORS:- Changed from hardcoded link to all http://localhost:5173
+// ✅ DYNAMIC CORS: Echoes the incoming origin to allow credentialed requests from localhost, staging, and Hugging Face domains
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or direct link API calls)
+    if (!origin) return callback(null, true);
+    // Otherwise allow the requesting origin dynamically
+    callback(null, true);
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Connection
 const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017';
 const dbName = process.env.DB_NAME || 'mindmate_db';
 
-mongoose.connect(`${mongoUrl}/${dbName}`)
+let connectionString = mongoUrl;
+const urlWithoutProtocol = mongoUrl.replace(/^mongodb(\+srv)?:\/\//, '');
+const slashIndex = urlWithoutProtocol.indexOf('/');
+if (slashIndex === -1) {
+  connectionString = `${mongoUrl}/${dbName}`;
+} else if (slashIndex === urlWithoutProtocol.length - 1) {
+  connectionString = `${mongoUrl}${dbName}`;
+}
+
+mongoose.connect(connectionString)
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
@@ -67,6 +85,21 @@ app.use('/api/friend', require('./routes/friend'));
 
 // ✅ Setup Socket.io handlers for chat
 setupChatHandlers(io);
+
+// ✅ DIAGNOSTIC HEALTH CHECK ROUTE
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development',
+    uptime: process.uptime(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    models: {
+      sentiment: isModelLoaded() ? 'loaded' : 'not_loaded',
+    },
+    groq: !!process.env.GROQ_API_KEY
+  });
+});
 
 // ✅ TEXT PREDICT ROUTE
 app.post('/api/predict', async (req, res) => {

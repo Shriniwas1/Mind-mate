@@ -26,12 +26,53 @@ const EMOTIONS = [
   { key: 'neutral', emoji: '😐', color: '#87CEEB', moodScore: 5 }
 ];
 
+const fs = require('fs');
+const https = require('https');
+
 // ── Load ONNX model once ─────────────────────────
 let session = null;
 
+async function downloadFile(url, dest) {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(dest);
+    https.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download: Status Code ${response.statusCode}`));
+        return;
+      }
+      response.pipe(file);
+      file.on('finish', () => {
+        file.close();
+        resolve();
+      });
+    }).on('error', (err) => {
+      fs.unlink(dest, () => {});
+      reject(err);
+    });
+  });
+}
+
 (async () => {
   try {
-    const modelPath = path.join(__dirname, '../model/mindmate_emotion.onnx');
+    const modelDir = path.join(__dirname, '../model');
+    const modelPath = path.join(modelDir, 'mindmate_emotion.onnx');
+
+    if (!fs.existsSync(modelPath)) {
+      console.log('📦 Emotion ONNX model not found locally. Checking download...');
+      const isProd = process.env.NODE_ENV === 'production';
+      if (isProd) {
+        if (!fs.existsSync(modelDir)) {
+          fs.mkdirSync(modelDir, { recursive: true });
+        }
+        const hfUrl = process.env.EMOTION_MODEL_URL || 'https://huggingface.co/shriniwasg07/mindmate-deberta/resolve/main/mindmate_emotion.onnx';
+        console.log(`📥 Downloading emotion ONNX model from: ${hfUrl}`);
+        await downloadFile(hfUrl, modelPath);
+        console.log('✅ Download complete.');
+      } else {
+        console.log('⚠️ Running locally but mindmate_emotion.onnx is missing. Make sure it exists in backend/model/.');
+      }
+    }
+
     session = await ort.InferenceSession.create(modelPath);
     console.log('✅ Emotion model loaded successfully');
   } catch (err) {
