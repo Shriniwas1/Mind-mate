@@ -5,6 +5,7 @@ import { initializeSocket, disconnectSocket } from '../utils/socket';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {

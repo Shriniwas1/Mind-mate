@@ -2,6 +2,7 @@ import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 
+
 let socket = null;
 
 export const initializeSocket = (token) => {

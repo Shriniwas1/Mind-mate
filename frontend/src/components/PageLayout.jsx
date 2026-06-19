@@ -256,9 +256,7 @@ const PageLayout = ({ children, activeTab }) => {
         <div>
           {/* Logo Brand */}
           <div className="flex items-center gap-2.5 px-3 mb-8 cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
-              <Smile className="w-5 h-5 fill-current" />
-            </div>
+            <img src="/mindmate-logo.png" alt="MindMate" className="w-8 h-8 rounded-xl object-contain" />
             <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">MindMate</span>
           </div>
 

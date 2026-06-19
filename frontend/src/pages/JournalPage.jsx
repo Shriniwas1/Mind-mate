@@ -293,7 +293,7 @@ const JournalPage = () => {
                                   <p className="text-xs uppercase font-extrabold text-slate-400 mb-3">Recommended Steps</p>
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                     {item.textSentiment.suggestedTasks.map((t, i) => (
-                                      <div key={i} className="bg-white/5 border border-white/8 rounded-xl p-3 flex gap-2 text-sm font-semibold text-slate-350">
+                                      <div key={i} className="bg-white/10 border border-white/10 rounded-xl p-3 flex gap-2 text-sm font-semibold text-slate-200">
                                         <Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: col.bg }} />
                                         {t}
                                       </div>

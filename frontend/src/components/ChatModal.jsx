@@ -8,6 +8,7 @@ import { useChat } from '../hooks/useChat';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
+
 const ChatModal = ({ isOpen, onClose, token, userId, contactName }) => {
   // Log props on every render
   console.log('🟢 [ChatModal] Render — token:', !!token, 'userId:', userId, 'contactName:', contactName);
@@ -99,36 +100,35 @@ const ChatModal = ({ isOpen, onClose, token, userId, contactName }) => {
             onClick={(e) => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10" style={{ background: '#2d5549' }}>
-              <button onClick={onClose} className="p-1.5 hover:bg-white/15 rounded-full transition w-8 h-8 flex items-center justify-center">
-                <ArrowLeft size={16} className="text-white" />
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-white">
+              <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-full transition w-8 h-8 flex items-center justify-center">
+                <ArrowLeft size={16} className="text-slate-500" />
               </button>
-              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-lg font-bold text-white">
+              <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-lg font-bold text-indigo-700">
                 {(contactName || 'C')[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-sm font-semibold text-white truncate">{contactName || 'Contact'}</h2>
-                <p className="text-xs text-emerald-200/80 flex items-center gap-1.5 mt-0.5">
-                  {typingUsers.size > 0 ? <span className="italic">typing…</span>
+                <h2 className="text-sm font-semibold text-slate-800 truncate">{contactName || 'Contact'}</h2>
+                <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                  {typingUsers.size > 0 ? <span className="italic text-indigo-500">typing…</span>
                     : isConnected ? <><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />Online</>
-                    : <><span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />Offline</>}
+                    : <><span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />Offline</>}
                 </p>
               </div>
-              <button onClick={onClose} className="p-1.5 hover:bg-white/15 rounded-full transition w-8 h-8 flex items-center justify-center">
-                <X size={16} className="text-white/70" />
+              <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-full transition w-8 h-8 flex items-center justify-center">
+                <X size={16} className="text-slate-400" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3" style={{ backgroundColor: '#ECE5DD',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8c3b8' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}>
+            <div className="flex-1 overflow-y-auto px-4 py-3 bg-slate-50/60">
               {isLoading ? (
-                <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-[#3A6B5E]" size={32} /></div>
+                <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-indigo-500" size={32} /></div>
               ) : messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-center">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-sm">
-                    <p className="text-gray-600 text-sm font-medium">No messages yet</p>
-                    <p className="text-gray-400 text-xs mt-1">Say hi to {contactName} 👋</p>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-sm border border-slate-100">
+                    <p className="text-slate-600 text-sm font-medium">No messages yet</p>
+                    <p className="text-slate-400 text-xs mt-1">Say hi to {contactName} 👋</p>
                   </div>
                 </div>
               ) : (
@@ -144,10 +144,10 @@ const ChatModal = ({ isOpen, onClose, token, userId, contactName }) => {
                   })}
                   {typingUsers.size > 0 && (
                     <div className="flex justify-start mb-2">
-                      <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm flex items-center gap-1.5">
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm border border-slate-100 flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
                     </div>
                   )}
@@ -162,11 +162,11 @@ const ChatModal = ({ isOpen, onClose, token, userId, contactName }) => {
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }} className="border-t bg-gray-50 overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-2">
-                    <div className="flex-1 border-l-4 border-[#3A6B5E] pl-3 py-1">
-                      <p className="text-xs font-semibold text-[#3A6B5E]">{replyingTo.senderName}</p>
-                      <p className="text-xs text-gray-500 truncate">{replyingTo.content}</p>
+                    <div className="flex-1 border-l-4 border-indigo-600 pl-3 py-1">
+                      <p className="text-xs font-semibold text-indigo-600">{replyingTo.senderName}</p>
+                      <p className="text-xs text-slate-500 truncate">{replyingTo.content}</p>
                     </div>
-                    <button onClick={() => setReplyingTo(null)} className="p-1 text-gray-400 hover:text-gray-600 transition">
+                    <button onClick={() => setReplyingTo(null)} className="p-1 text-slate-400 hover:text-slate-600 transition">
                       <XCircle size={18} />
                     </button>
                   </div>
@@ -175,14 +175,14 @@ const ChatModal = ({ isOpen, onClose, token, userId, contactName }) => {
             </AnimatePresence>
 
             {/* Input */}
-            <div className="px-3 py-3 border-t bg-[#F0F0F0]">
+            <div className="px-3 py-3 border-t border-slate-100 bg-white">
               <div className="flex gap-2 items-end">
                 <textarea ref={inputRef} value={messageInput} onChange={handleInputChange}
                   onKeyDown={handleInputKeyDown} onBlur={handleInputBlur} placeholder="Type a message…" rows={1}
-                  className="flex-1 px-4 py-2.5 bg-white border-none rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#3A6B5E]/30 resize-none text-sm shadow-sm"
+                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none text-sm shadow-sm"
                   style={{ maxHeight: '100px' }} />
                 <button onClick={handleSendMessage} disabled={!messageInput.trim() || isSending}
-                  className="w-10 h-10 rounded-full bg-[#3A6B5E] hover:bg-[#2d5549] text-white flex items-center justify-center transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex-shrink-0">
+                  className="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex-shrink-0">
                   {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={16} />}
                 </button>
               </div>

@@ -344,7 +344,7 @@ const Dashboard = () => {
             <div className="text-center md:text-left space-y-1">
               <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest leading-none">MindMate Dashboard</span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mt-1.5">
-                Good Evening, {user?.name?.split(' ')[0]} 👋
+                Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 17 ? 'Afternoon' : 'Evening'}, {user?.name?.split(' ')[0]} 👋
               </h2>
               <p className="text-base text-slate-500 font-semibold mt-1.5">You've completed {totalEntries} self-care checks in MindMate.</p>
               

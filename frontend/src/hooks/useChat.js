@@ -12,6 +12,7 @@ import {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
+
 /**
  * Helper: extract senderId string from a message
  * (handles both populated object and plain string/ObjectId)

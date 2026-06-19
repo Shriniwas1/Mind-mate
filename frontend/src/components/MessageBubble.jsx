@@ -67,28 +67,28 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
         <div
           className={`relative px-3 py-1.5 shadow-sm ${
             isOwnMessage
-              ? 'bg-[#D9FDD3] text-gray-900 rounded-lg rounded-tr-sm'
-              : 'bg-white text-gray-900 rounded-lg rounded-tl-sm'
+              ? 'bg-indigo-100 text-slate-900 rounded-lg rounded-tr-sm'
+              : 'bg-white text-slate-900 rounded-lg rounded-tl-sm border border-slate-100'
           }`}
         >
           {/* Sender name for received messages */}
           {!isOwnMessage && senderName && (
-            <p className="text-xs font-semibold text-[#3A6B5E] mb-0.5">{senderName}</p>
+            <p className="text-xs font-semibold text-indigo-600 mb-0.5">{senderName}</p>
           )}
 
           {/* ── Reply quote ── */}
           {message.replyToContent && (
             <div className={`mb-1.5 rounded-md px-2.5 py-1.5 border-l-3 ${
               isOwnMessage
-                ? 'bg-[#c8efc2] border-l-[#3A6B5E]'
-                : 'bg-gray-100 border-l-[#6366F1]'
+                ? 'bg-indigo-200/50 border-l-indigo-600'
+                : 'bg-slate-100 border-l-indigo-600'
             }`}
             style={{ borderLeftWidth: '3px' }}
             >
-              <p className="text-[10px] font-semibold text-[#3A6B5E]">
+              <p className="text-[10px] font-semibold text-indigo-600">
                 {message.replyToSenderName}
               </p>
-              <p className="text-[11px] text-gray-500 line-clamp-2">
+              <p className="text-[11px] text-slate-500 line-clamp-2">
                 {message.replyToContent}
               </p>
             </div>
@@ -102,10 +102,10 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
                 value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleEditSubmit()}
-                className="flex-1 px-2 py-1 rounded bg-white text-gray-900 text-sm border border-gray-200"
+                className="flex-1 px-2 py-1 rounded bg-white text-slate-900 text-sm border border-slate-200"
                 autoFocus
               />
-              <button onClick={handleEditSubmit} className="text-[#3A6B5E] text-xs font-bold px-1">✓</button>
+              <button onClick={handleEditSubmit} className="text-indigo-600 text-xs font-bold px-1">✓</button>
               <button onClick={() => setIsEditing(false)} className="text-red-400 text-xs font-bold px-1">✕</button>
             </div>
           ) : (
@@ -114,7 +114,7 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
                 {message.content}
               </p>
               <span className={`text-[10px] whitespace-nowrap flex items-center gap-0.5 -mb-0.5 flex-shrink-0 ${
-                isOwnMessage ? 'text-gray-500' : 'text-gray-400'
+                isOwnMessage ? 'text-indigo-400' : 'text-slate-400'
               }`}>
                 {message.editedAt && <span className="italic mr-0.5">edited</span>}
                 {formatTime(message.createdAt)}
@@ -123,9 +123,9 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
                     {isTemp ? (
                       <span className="text-[9px]">⏳</span>
                     ) : message.seen ? (
-                      <CheckCheck size={13} className="text-blue-500" />
+                      <CheckCheck size={13} className="text-indigo-500" />
                     ) : (
-                      <CheckCheck size={13} className="text-gray-400" />
+                      <CheckCheck size={13} className="text-slate-400" />
                     )}
                   </span>
                 )}
@@ -141,10 +141,10 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
               <button
                 key={emoji}
                 onClick={() => handleReact(emoji)}
-                className="flex items-center gap-0.5 bg-white px-1.5 py-0.5 rounded-full text-xs shadow-sm hover:shadow transition border border-gray-100"
+                className="flex items-center gap-0.5 bg-white px-1.5 py-0.5 rounded-full text-xs shadow-sm hover:shadow transition border border-slate-100"
               >
                 <span className="text-sm">{emoji}</span>
-                {count > 1 && <span className="text-[10px] text-gray-500">{count}</span>}
+                {count > 1 && <span className="text-[10px] text-slate-500">{count}</span>}
               </button>
             ))}
           </div>
@@ -160,7 +160,7 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
             className="p-1.5 hover:bg-white/80 rounded-full transition"
             title="Reply"
           >
-            <Reply size={14} className="text-gray-500" />
+            <Reply size={14} className="text-slate-500" />
           </button>
 
           {/* React */}
@@ -170,7 +170,7 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
             className="p-1.5 hover:bg-white/80 rounded-full transition disabled:opacity-40"
             title="React"
           >
-            <Smile size={14} className="text-gray-500" />
+            <Smile size={14} className="text-slate-500" />
           </button>
 
           {/* More (own messages only) */}
@@ -180,7 +180,7 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
               className="p-1.5 hover:bg-white/80 rounded-full transition"
               title="More"
             >
-              <MoreVertical size={14} className="text-gray-500" />
+              <MoreVertical size={14} className="text-slate-500" />
             </button>
           )}
         </div>
@@ -189,10 +189,10 @@ const MessageBubble = ({ message, isOwnMessage, onEdit, onReact, onDelete, onRep
         {showMenu && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-            <div className={`absolute z-20 ${isOwnMessage ? 'right-0' : 'left-0'} top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[120px]`}>
+            <div className={`absolute z-20 ${isOwnMessage ? 'right-0' : 'left-0'} top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden min-w-[120px]`}>
               <button
                 onClick={() => { setIsEditing(true); setShowMenu(false); }}
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 w-full transition"
+                className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 w-full transition"
               >
                 <Edit2 size={13} /> Edit
               </button>

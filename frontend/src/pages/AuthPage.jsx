@@ -7,7 +7,7 @@ import { Label } from '../components/ui/label';
 import { Card } from '../components/ui/card';
 import { Switch } from '../components/ui/switch';
 // Added Eye and EyeOff icons
-import { Heart, Mail, Lock, User, Phone, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Phone, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AuthPage = () => {
@@ -56,7 +56,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-page">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC]">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -69,11 +69,13 @@ const AuthPage = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-5 border border-primary/10"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white mb-5 shadow-lg shadow-indigo-500/10 border border-slate-100"
           >
-            <Heart className="w-7 h-7 text-primary" />
+            <img src="/mindmate-logo.png" alt="MindMate" className="w-10 h-10 object-contain" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-1.5">MindMate</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-1.5">
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">MindMate</span>
+          </h1>
           <p className="text-base text-slate-500 font-semibold">Your companion for mental wellness</p>
         </div>
 
@@ -98,7 +100,7 @@ const AuthPage = () => {
                   {active && (
                     <motion.div
                       layoutId="auth-tab-indicator"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
                       transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                     />
                   )}
@@ -243,8 +245,7 @@ const AuthPage = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl py-5 text-base font-bold mt-2"
-              style={{ background: '#1e293b', color: '#fff' }}
+              className="w-full rounded-xl py-5 text-base font-bold mt-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
             >
               {loading
                 ? 'Processing…'

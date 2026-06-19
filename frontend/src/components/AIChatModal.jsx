@@ -6,6 +6,7 @@ import axios from 'axios';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 const API = `${BACKEND_URL}/api`;
 
+
 const AIChatModal = ({ isOpen, onClose, token, userName }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -94,7 +95,7 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-lg leading-none">
+            <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-lg leading-none">
               🤖
             </div>
             <div>
@@ -125,7 +126,7 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
         <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/40">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-3xl">🤖</div>
+              <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center text-3xl">🤖</div>
               <div>
                 <h3 className="font-semibold text-slate-700 mb-1">Hi{userName ? `, ${userName.split(' ')[0]}` : ''}! 👋</h3>
                 <p className="text-sm text-slate-400 max-w-xs">
@@ -138,7 +139,7 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
                   <button
                     key={s}
                     onClick={() => { setInputValue(s); }}
-                    className="text-xs text-left px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    className="text-xs text-left px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all"
                   >
                     {s}
                   </button>
@@ -156,7 +157,7 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'assistant' && (
-                    <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
+                    <div className="w-7 h-7 rounded-xl bg-indigo-100 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
                       🤖
                     </div>
                   )}
@@ -166,7 +167,7 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
                         ? 'text-white rounded-br-sm'
                         : 'bg-white border border-slate-100 text-slate-700 rounded-bl-sm shadow-xs'
                     }`}
-                    style={msg.role === 'user' ? { background: '#1e293b' } : {}}
+                    style={msg.role === 'user' ? { background: '#4f46e5' } : {}}
                   >
                     <div className="text-sm leading-relaxed">
                       {msg.role === 'assistant' ? formatMessage(msg.content) : msg.content}
@@ -183,7 +184,7 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start"
                 >
-                  <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
+                  <div className="w-7 h-7 rounded-xl bg-indigo-100 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
                     🤖
                   </div>
                   <div className="bg-white border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm shadow-xs flex items-center gap-2">
@@ -227,13 +228,13 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
             onKeyDown={handleKeyDown}
             placeholder="Type a message…"
             disabled={isLoading}
-            className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 disabled:bg-slate-50 disabled:text-slate-400 bg-slate-50/60 placeholder:text-slate-400 transition-all"
+            className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 disabled:bg-slate-50 disabled:text-slate-400 bg-slate-50/60 placeholder:text-slate-400 transition-all"
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !inputValue.trim()}
             className="w-10 h-10 rounded-xl text-white flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-            style={{ background: '#1e293b' }}
+            style={{ background: '#4f46e5' }}
           >
             {isLoading
               ? <Loader2 className="w-4 h-4 animate-spin" />
