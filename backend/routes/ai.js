@@ -26,6 +26,34 @@ If the user mentions suicidal thoughts or self-harm, encourage them to contact e
 Keep responses concise (2-3 sentences max) and supportive.
 Never pretend to be a licensed therapist or provide medical diagnoses.`;
 
+    // 🛡️ Pre-classification check: restrict MindMate AI Assistant to mental health topics
+    const classificationCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a strict content classifier for "MindMate AI", a mental health support assistant. Your sole task is to determine if the user\'s message is related to mental health, emotional support, psychological wellness, stress, anxiety, depression, coping strategies, personal life issues, or general supportive/empathetic conversation. If it is related, respond with exactly "yes". If it is unrelated to mental health/wellness (e.g. requests for code/programming, math, science, history, general knowledge, business, entertainment, or random tasks that do not involve personal feelings or mental wellness), respond with exactly "no". Respond with ONLY "yes" or "no". Do not include any explanations, reasoning, or punctuation.'
+        },
+        {
+          role: 'user',
+          content: message
+        }
+      ],
+      model: 'llama-3.1-8b-instant',
+      max_tokens: 5,
+      temperature: 0,
+    });
+
+    const isRelated = classificationCompletion.choices[0]?.message?.content?.trim().toLowerCase();
+
+    if (isRelated && isRelated.includes('no')) {
+      console.log(`🛡️ Refused unrelated AI request from user ${req.userId}: "${message}"`);
+      return res.status(200).json({
+        success: true,
+        response: "This request cannot be served because the context is not related to mental health, to ensure the safety and focus of MindMate AI Assistant.",
+        model: 'llama-3.1-8b-instant',
+      });
+    }
+
     const chatCompletion = await groq.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },

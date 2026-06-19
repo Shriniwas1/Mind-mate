@@ -143,7 +143,7 @@ const FriendHealthCard = ({ friendData, onOpenChat }) => {
               </div>
             </div>
 
-            {journalSummary ? (
+            {journalSummary && !isCritical ? (
               <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-100/60 relative">
                 <span className="absolute top-3 right-3 text-slate-300">
                   <Info className="w-4 h-4" />

@@ -22,8 +22,9 @@ const io = socketIo(server, {
 const PORT = process.env.PORT || 8001;
 
 // ✅ UPDATED CORS: Specifically allows your Vite frontend and headers
+// CORS:- Changed from hardcoded link to all http://localhost:5173
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -52,16 +53,16 @@ loadModel()
 app.locals.io = io;
 
 // ---------------- ROUTES ----------------
-app.use('/api/auth',    require('./routes/auth'));
-app.use('/api/user',    require('./routes/user'));
-app.use('/api/mood',    require('./routes/mood'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/user', require('./routes/user'));
+app.use('/api/mood', require('./routes/mood'));
 app.use('/api/journal', require('./routes/journal'));
-app.use('/api/quiz',    require('./routes/quiz'));
-app.use('/api/task',    require('./routes/task'));
-app.use('/api/alert',   require('./routes/alert'));
-app.use('/api/chat',    require('./routes/chat'));
-app.use('/api/ai',      require('./routes/ai'));
-app.use('/api/friend',  require('./routes/friend'));
+app.use('/api/quiz', require('./routes/quiz'));
+app.use('/api/task', require('./routes/task'));
+app.use('/api/alert', require('./routes/alert'));
+app.use('/api/chat', require('./routes/chat'));
+app.use('/api/ai', require('./routes/ai'));
+app.use('/api/friend', require('./routes/friend'));
 // app.use('/api/emotion', require('./routes/emotion')); // ✅ Emotion (selfie) route
 
 // ✅ Setup Socket.io handlers for chat
