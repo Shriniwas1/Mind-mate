@@ -83,13 +83,13 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-        className="relative w-full max-w-2xl h-[600px] bg-white rounded-2xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-2xl h-full sm:h-[600px] bg-white rounded-none sm:rounded-2xl overflow-hidden flex flex-col"
         style={{ boxShadow: 'var(--shadow-xl)' }}
       >
         {/* Header */}

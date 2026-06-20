@@ -17,3 +17,29 @@ html {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (max-width: 1023px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Prevent elements from exceeding the mobile screen width */
+  img, video, canvas, svg, iframe {
+    max-width: 100% !important;
+  }
+
+  /* Deep text wrapping rules to prevent text overflows */
+  p, h1, h2, h3, h4, h5, h6, span, a, blockquote, q, pre, code {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Handle notched displays and modern safe area insets */
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

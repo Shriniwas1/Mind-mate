@@ -92,10 +92,10 @@ const ChatModal = ({ isOpen, onClose, token, userId, contactName }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4" onClick={onClose}>
           <motion.div initial={{ opacity: 0, scale: 0.96, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }} transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="w-full max-w-2xl h-[600px] bg-white rounded-2xl flex flex-col overflow-hidden"
+            className="w-full max-w-2xl h-full sm:h-[600px] bg-white rounded-none sm:rounded-2xl flex flex-col overflow-hidden"
             style={{ boxShadow: 'var(--shadow-xl)' }}
             onClick={(e) => e.stopPropagation()}>
 

@@ -7,8 +7,12 @@ import axios from 'axios';
 import { Button } from './ui/button';
 import {
   Smile, TrendingUp, ClipboardList, Camera, BookOpen, LogOut, ShieldCheck, X,
-  AlertTriangle, CheckCircle, Loader2, MessageCircle, Sparkles, Flame, Lightbulb
+  AlertTriangle, CheckCircle, Loader2, MessageCircle, Sparkles, Flame, Lightbulb,
+  Menu
 } from 'lucide-react';
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription
+} from './ui/sheet';
 
 import ChatModal from './ChatModal';
 import AIChatModal from './AIChatModal';
@@ -196,6 +200,7 @@ const PageLayout = ({ children, activeTab }) => {
   const [showSOSModal, setShowSOSModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [showAIChatModal, setShowAIChatModal] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [chatContactName, setChatContactName] = useState(user?.emergencyContact?.name || 'Contact');
 
   // Synchronize contact name on user load
@@ -248,10 +253,38 @@ const PageLayout = ({ children, activeTab }) => {
     navigate('/auth');
   };
 
+  /* ── Shared navigation items (single source of truth for desktop & mobile) ── */
+  const navItems = [
+    { icon: Smile, label: 'Dashboard', active: activeTab === 'dashboard', onClick: () => navigate('/dashboard') },
+    { icon: BookOpen, label: 'Weekly Journal', active: activeTab === 'journal', onClick: () => navigate('/journal') },
+    { icon: Camera, label: 'Mood Selfie', active: activeTab === 'selfie', onClick: () => navigate('/selfie') },
+    { icon: ClipboardList, label: 'Wellness Quiz', active: activeTab === 'quiz', onClick: () => navigate('/quiz') },
+    { icon: TrendingUp, label: 'Insights', onClick: () => navigate('/dashboard') },
+    { icon: Sparkles, label: 'AI Companion', onClick: () => setShowAIChatModal(true) },
+    { icon: MessageCircle, label: 'Support Chat', onClick: () => { setChatContactName(user?.emergencyContact?.name || 'Contact'); setShowChatModal(true); } },
+    { icon: ShieldCheck, label: 'Emergency Safety', active: activeTab === 'safety', onClick: () => setShowSafetyModal(true) },
+  ];
+
+  /* ── Reusable nav button renderer ── */
+  const renderNavButton = (item, idx, { onAfterClick } = {}) => (
+    <button
+      key={idx}
+      onClick={() => { item.onClick(); onAfterClick?.(); }}
+      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all ${
+        item.active 
+          ? 'bg-indigo-50/70 text-indigo-700 font-extrabold' 
+          : 'text-slate-400 hover:text-slate-750 hover:bg-slate-50'
+      }`}
+    >
+      <item.icon className={`w-4 h-4 ${item.active ? 'text-indigo-600' : 'text-slate-400'}`} />
+      <span>{item.label}</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans antialiased text-slate-800">
       
-      {/* ── Left Navigation Sidebar ── */}
+      {/* ── Left Navigation Sidebar (Desktop only — unchanged) ── */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-100 flex-shrink-0 h-screen sticky top-0 justify-between py-6 px-4">
         <div>
           {/* Logo Brand */}
@@ -260,31 +293,9 @@ const PageLayout = ({ children, activeTab }) => {
             <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">MindMate</span>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links — uses shared navItems */}
           <nav className="space-y-1.5 flex-1">
-            {[
-              { icon: Smile, label: 'Dashboard', active: activeTab === 'dashboard', onClick: () => navigate('/dashboard') },
-              { icon: BookOpen, label: 'Weekly Journal', active: activeTab === 'journal', onClick: () => navigate('/journal') },
-              { icon: Camera, label: 'Mood Selfie', active: activeTab === 'selfie', onClick: () => navigate('/selfie') },
-              { icon: ClipboardList, label: 'Wellness Quiz', active: activeTab === 'quiz', onClick: () => navigate('/quiz') },
-              { icon: TrendingUp, label: 'Insights', onClick: () => navigate('/dashboard') },
-              { icon: Sparkles, label: 'AI Companion', onClick: () => setShowAIChatModal(true) },
-              { icon: MessageCircle, label: 'Support Chat', onClick: () => { setChatContactName(user?.emergencyContact?.name || 'Contact'); setShowChatModal(true); } },
-              { icon: ShieldCheck, label: 'Emergency Safety', active: activeTab === 'safety', onClick: () => setShowSafetyModal(true) },
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                onClick={item.onClick}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all ${
-                  item.active 
-                    ? 'bg-indigo-50/70 text-indigo-700 font-extrabold' 
-                    : 'text-slate-400 hover:text-slate-750 hover:bg-slate-50'
-                }`}
-              >
-                <item.icon className={`w-4 h-4 ${item.active ? 'text-indigo-600' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
-              </button>
-            ))}
+            {navItems.map((item, idx) => renderNavButton(item, idx))}
           </nav>
         </div>
 
@@ -311,11 +322,96 @@ const PageLayout = ({ children, activeTab }) => {
         </div>
       </aside>
 
+      {/* ── Mobile Navigation Drawer (lg:hidden only) ── */}
+      <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+        <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigation</SheetTitle>
+            <SheetDescription>Main navigation menu</SheetDescription>
+          </SheetHeader>
+
+          {/* Drawer header / logo */}
+          <div className="flex items-center gap-2.5 px-6 py-5 border-b border-slate-100">
+            <img src="/mindmate-logo.png" alt="MindMate" className="w-8 h-8 rounded-xl object-contain" />
+            <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">MindMate</span>
+          </div>
+
+          {/* Drawer nav — reuses same navItems */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+            {navItems.map((item, idx) => renderNavButton(item, idx, { onAfterClick: () => setMobileNavOpen(false) }))}
+            <button
+              onClick={() => { handleLogout(); setMobileNavOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all text-slate-400 hover:text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 text-slate-400 hover:text-red-500" />
+              <span>Logout</span>
+            </button>
+          </nav>
+
+          {/* Drawer footer — same SOS + motivational cards */}
+          <div className="space-y-3 p-4 border-t border-slate-100/80">
+            <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-left">
+              <p className="text-sm font-bold text-slate-805 tracking-wide uppercase leading-none">Need immediate support?</p>
+              <p className="text-sm text-slate-500 mt-2 leading-normal">You're not alone. Our support network is here 24/7.</p>
+              <button 
+                onClick={() => { setShowSOSModal(true); setMobileNavOpen(false); }}
+                className="w-full mt-3.5 bg-red-50 hover:bg-red-100 text-red-650 font-extrabold py-2.5 px-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-1.5 border border-red-200"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>SOS Alert</span>
+              </button>
+            </div>
+            
+            <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50 to-violet-50 border border-indigo-100/50 p-4 rounded-2xl text-left min-h-[90px] flex flex-col justify-end">
+              <div className="absolute -right-3 -top-3 w-16 h-16 rounded-full bg-indigo-100/30 blur-xl" />
+              <p className="text-sm text-indigo-850 font-extrabold leading-normal relative z-10">
+                Take a deep breath, you're doing better than you think. 💛
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* ── Main Content Area ── */}
-      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto p-4 lg:p-6 space-y-4 lg:space-y-6">
         
-        {/* Top bar search and profile dropdown */}
-        <header className="flex items-center justify-between flex-shrink-0">
+        {/* ── Mobile-only top header bar ── */}
+        <header className="flex lg:hidden items-center justify-between flex-shrink-0 -mx-4 -mt-4 px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 flex items-center justify-center text-slate-600 transition-colors"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+              <img src="/mindmate-logo.png" alt="MindMate" className="w-7 h-7 rounded-lg object-contain" />
+              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">MindMate</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowSOSModal(true)}
+              className="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 border border-red-100 flex items-center justify-center text-red-500 relative transition-colors"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-600 rounded-full animate-ping" />
+            </button>
+            <button 
+              onClick={() => setShowAIChatModal(true)}
+              className="w-8 h-8 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-100/50 flex items-center justify-center text-indigo-600 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5 fill-current" />
+            </button>
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-xs uppercase shadow-inner">
+              {user?.name?.[0]}
+            </div>
+          </div>
+        </header>
+
+        {/* ── Desktop-only top bar (search and profile) — unchanged ── */}
+        <header className="hidden lg:flex items-center justify-between flex-shrink-0">
           <div className="relative w-80">
             <input 
               type="text" 

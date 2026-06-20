@@ -305,12 +305,12 @@ const Dashboard = () => {
         )}
 
         {/* Welcome Profile Hero Card banner */}
-        <section className="relative rounded-3xl bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50/30 border border-indigo-100/40 p-6 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs shrink-0 min-h-[160px]">
+        <section className="relative rounded-3xl bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50/30 border border-indigo-100/40 p-4 sm:p-6 overflow-hidden flex flex-col items-center justify-between gap-4 sm:gap-6 md:flex-row shadow-xs shrink-0 min-h-0 md:min-h-[160px]">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-100/15 via-transparent to-transparent opacity-70 pointer-events-none" />
           
           <div className="flex flex-col md:flex-row items-center gap-6 relative z-10 flex-1">
             {/* Circular Progress Ring for score */}
-            <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center shrink-0">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 88 88">
                 <circle
                   cx="44"
@@ -335,7 +335,7 @@ const Dashboard = () => {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-black text-slate-800 leading-none">{avgScore}</span>
+                <span className="text-3xl sm:text-4xl font-black text-slate-800 leading-none">{avgScore}</span>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 leading-none">Score</span>
               </div>
             </div>
@@ -343,12 +343,12 @@ const Dashboard = () => {
             {/* Welcome Greeting details */}
             <div className="text-center md:text-left space-y-1">
               <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest leading-none">MindMate Dashboard</span>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mt-1.5">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 mt-1.5">
                 Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 17 ? 'Afternoon' : 'Evening'}, {user?.name?.split(' ')[0]} 👋
               </h2>
               <p className="text-base text-slate-500 font-semibold mt-1.5">You've completed {totalEntries} self-care checks in MindMate.</p>
               
-              <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
+              <div className="flex items-center justify-center md:justify-start gap-3 sm:gap-4 mt-4 flex-wrap">
                 <div className="flex items-center gap-2.5 text-sm text-slate-700 font-bold bg-white/70 border border-slate-200/55 rounded-xl px-4 py-2.5 shadow-2xs">
                   <Flame className="w-4 h-4 text-amber-500 fill-current animate-pulse" />
                   <span>{computedStreak} Day Streak</span>
@@ -364,7 +364,7 @@ const Dashboard = () => {
           {/* Thought of the Day Bubble on the right */}
           <div 
             onClick={() => setShowAIChatModal(true)}
-            className="bg-white/95 border border-indigo-100 hover:border-indigo-200/80 p-5 rounded-2xl max-w-sm shadow-xs relative z-10 cursor-pointer transition-all hover:scale-101 shrink-0 flex items-start gap-3.5"
+            className="bg-white/95 border border-indigo-100 hover:border-indigo-200/80 p-4 sm:p-5 rounded-2xl w-full md:max-w-sm shadow-xs relative z-10 cursor-pointer transition-all hover:scale-101 shrink-0 flex items-start gap-3.5"
           >
             <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 shrink-0 border border-amber-100">
               <Lightbulb className="w-4 h-4 fill-current animate-pulse" />

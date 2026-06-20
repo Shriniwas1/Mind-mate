@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, Video, Camera, ShieldCheck, 
   Zap, Brain, Database, Share2, X, 
-  Search, Lock, Milestone
+  Search, Lock, Milestone, Menu
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [showResearch, setShowResearch] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -54,7 +55,7 @@ const LandingPage = () => {
     <div className="min-h-screen text-slate-900 font-sans bg-[#F8FAFC]">
       
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-50">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
             <img src="/mindmate-logo.png" alt="MindMate" className="w-8 h-8 rounded-xl object-contain" />
@@ -69,33 +70,82 @@ const LandingPage = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/auth')}
-            className="text-base font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+            className="hidden sm:inline-block text-base font-bold text-slate-500 hover:text-indigo-600 transition-colors"
           >
             Log in
           </button>
           <Button
             onClick={() => navigate('/auth')}
-            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-5 text-base font-bold shadow-lg shadow-indigo-500/20"
+            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 text-base font-bold shadow-lg shadow-indigo-500/20"
           >
             Get Started <ArrowRight className="ml-1 w-3.5 h-3.5" />
           </Button>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-150 flex items-center justify-center text-slate-600 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </nav>
 
+      {/* Mobile Navigation Dropdown Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden bg-white border-b border-slate-100 px-6 py-4 flex flex-col gap-4 font-bold text-slate-600 sticky top-[73px] z-40 shadow-sm"
+          >
+            <a 
+              href="#working" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 hover:text-indigo-600 transition-colors"
+            >
+              Technology
+            </a>
+            <a 
+              href="#samples" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 hover:text-indigo-600 transition-colors"
+            >
+              Preview
+            </a>
+            <a 
+              href="#privacy" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 hover:text-indigo-600 transition-colors"
+            >
+              Privacy
+            </a>
+            <hr className="border-slate-100" />
+            <button
+              onClick={() => { setMobileMenuOpen(false); navigate('/auth'); }}
+              className="w-full text-left py-2 hover:text-indigo-600 transition-colors text-indigo-600"
+            >
+              Log in / Sign up
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Hero */}
-      <header className="max-w-3xl mx-auto text-center pt-24 pb-20 px-6">
+      <header className="max-w-3xl mx-auto text-center pt-16 sm:pt-24 pb-12 sm:pb-20 px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-sm font-extrabold uppercase tracking-[0.3em] text-indigo-600/60 mb-5">
+          <p className="text-xs sm:text-sm font-extrabold uppercase tracking-[0.3em] text-indigo-600/60 mb-4 sm:mb-5">
             Mental Wellness Platform
           </p>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 text-slate-900 leading-none">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6 sm:mb-8 text-slate-900 leading-none">
             Introducing<br/>MindMate
           </h1>
-          <p className="text-xl text-slate-600 mb-10 max-w-xl mx-auto leading-relaxed font-medium">
+          <p className="text-lg sm:text-xl text-slate-600 mb-8 sm:mb-10 max-w-xl mx-auto leading-relaxed font-medium">
             AI-powered wellness tracking that understands how you feel — not just what you say.
           </p>
         </motion.div>
@@ -107,34 +157,34 @@ const LandingPage = () => {
         >
           <Button
             onClick={() => navigate('/auth')}
-            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-5 text-base font-semibold group shadow-lg shadow-indigo-500/20"
+            className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-5 text-base font-semibold group shadow-lg shadow-indigo-500/20"
           >
-            Try MindMate <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            Try MindMate <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button
             onClick={() => setShowResearch(true)}
             variant="ghost"
-            className="rounded-xl text-base text-slate-500 hover:text-slate-900 hover:bg-white/60 px-8 py-5"
+            className="w-full sm:w-auto rounded-xl text-base text-slate-500 hover:text-slate-900 hover:bg-white/60 px-8 py-5"
           >
             Read the Research <Share2 className="ml-2 w-3.5 h-3.5" />
           </Button>
         </motion.div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 space-y-28 pb-28">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-28 pb-16 sm:pb-28">
 
         {/* Why section */}
-        <motion.section {...fadeIn} className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-5">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-800">Why MindMate?</h2>
-            <p className="text-slate-500 leading-relaxed">
+        <motion.section {...fadeIn} className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+          <div className="space-y-4 sm:space-y-5 text-center md:text-left">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800">Why MindMate?</h2>
+            <p className="text-slate-500 text-base sm:text-lg leading-relaxed">
               Traditional wellness apps rely solely on manual input — which is often biased, incomplete, or forgotten.
             </p>
-            <p className="text-indigo-600 font-semibold leading-relaxed">
+            <p className="text-indigo-600 text-base sm:text-lg font-semibold leading-relaxed">
               MindMate bridges the gap by observing physical cues alongside internal reflections to provide a 360° wellness view.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { icon: Search, title: 'Beyond Bias', desc: 'Physical landmarks don\'t lie when words fail.' },
               { icon: Database, title: 'Deep Data', desc: '68 unique facial points tracked locally.' },
@@ -226,7 +276,7 @@ const LandingPage = () => {
         </motion.section>
 
         {/* Privacy section */}
-        <section id="privacy" className="rounded-2xl p-12 md:p-16 relative overflow-hidden bg-slate-900">
+        <section id="privacy" className="rounded-2xl p-6 sm:p-12 md:p-16 relative overflow-hidden bg-slate-900">
           <div className="relative z-10 max-w-2xl">
             <div className="flex items-center gap-2 text-indigo-400 mb-5">
               <ShieldCheck className="w-5 h-5" />

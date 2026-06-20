@@ -8,7 +8,7 @@ const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 export async function loadFaceModels(onProgress) {
   if (modelsLoaded) return true;
-  
+
   if (isInitializing) {
     // Wait for the existing initialization to finish
     while (isInitializing) {
@@ -54,7 +54,7 @@ export async function predictEmotionAPI(mediaElement) {
 
   // Use SsdMobilenetv1 for highest accuracy
   const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 });
-  
+
   const detection = await faceapi.detectSingleFace(mediaElement, options)
     .withFaceLandmarks()
     .withFaceExpressions();

@@ -178,11 +178,11 @@ const JournalPage = () => {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="flex items-end justify-between"
+          className="flex flex-wrap items-end justify-between gap-3"
         >
-          <div>
+          <div className="min-w-0">
             <p className="text-sm uppercase tracking-[0.28em] text-indigo-600 font-bold mb-2">MindMate · Neural Synthesis</p>
-            <h1 className="text-3xl font-extrabold text-slate-805 leading-none">Weekly Journal</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-805 leading-none">Weekly Journal</h1>
           </div>
           <div className="flex gap-2">
             {showResults && (
