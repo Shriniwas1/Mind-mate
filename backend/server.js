@@ -1,15 +1,23 @@
+const dotenv = require('dotenv');
+// Load environment variables
+dotenv.config();
+
+// Ensure critical environment variables are set and secure in production
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || (process.env.NODE_ENV === 'production' && JWT_SECRET === 'mindmate_secret_key_change_in_production')) {
+  console.error("❌ CRITICAL SETUP ERROR: JWT_SECRET environment variable is missing or insecure in production!");
+  process.exit(1);
+}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const { loadModel, predict, isModelLoaded } = require('./server/modelLoader.js');
 const http = require('http');
 const socketIo = require('socket.io');
 const setupChatHandlers = require('./io/chatHandler.js');
-
-// Load environment variables
-dotenv.config();
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const server = http.createServer(app);
@@ -25,13 +33,22 @@ const io = socketIo(server, {
 });
 const PORT = process.env.PORT || 8001;
 
-// ✅ DYNAMIC CORS: Echoes the incoming origin to allow credentialed requests from localhost, staging, and Hugging Face domains
+// ✅ SECURE CORS: Restrict allowed origins to specific domains configured via env, defaulting to local dev ports
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, or direct link API calls)
+    // Allow requests with no origin (like mobile apps, direct API calls, or curl)
     if (!origin) return callback(null, true);
-    // Otherwise allow the requesting origin dynamically
-    callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn(`🔒 Blocked CORS request from unauthorized origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -70,11 +87,43 @@ loadModel()
 // Make io available to routes
 app.locals.io = io;
 
+// ---------------- RATE LIMITERS ----------------
+// General API limiter: max 150 requests per 15 mins
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 150,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
+
+// Authentication rate limiter: max 15 requests per 15 mins
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts, please try again after 15 minutes.' }
+});
+
+// Prediction & Journal limits: max 10 requests per minute
+const predictionLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Analysis rate limit exceeded. Please slow down.' }
+});
+
 // ---------------- ROUTES ----------------
-app.use('/api/auth', require('./routes/auth'));
+// Apply global API rate limit
+app.use('/api', apiLimiter);
+
+// Specific stricter limiters on top
+app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/user', require('./routes/user'));
 app.use('/api/mood', require('./routes/mood'));
-app.use('/api/journal', require('./routes/journal'));
+app.use('/api/journal', predictionLimiter, require('./routes/journal'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/task', require('./routes/task'));
 app.use('/api/alert', require('./routes/alert'));
@@ -102,7 +151,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ✅ TEXT PREDICT ROUTE
-app.post('/api/predict', async (req, res) => {
+app.post('/api/predict', predictionLimiter, async (req, res) => {
   try {
     const { text } = req.body;
 

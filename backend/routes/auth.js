@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User'); 
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mindmate_secret_key_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Register Route
 router.post('/register', async (req, res) => {

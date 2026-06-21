@@ -82,6 +82,73 @@ const THOUGHTS_OF_THE_DAY = [
   "Every moment is a new beginning. Choose peace, love, and kindness for yourself today."
 ];
 
+const SELFIE_SUGGESTIONS = {
+  happy: {
+    summary: "It's wonderful to see you're feeling great and happy today, it's clear that you're in a positive place!",
+    tasks: [
+      "Take a few minutes to write down what specifically is causing your happiness, reflecting on this can help you appreciate the good things in life.",
+      "Plan a fun activity or outing to celebrate your happiness, this could be as simple as taking a walk or trying a new recipe.",
+      "Reach out to a friend or loved one to share your happiness with them, social connections can amplify positive emotions."
+    ]
+  },
+  sad: {
+    summary: "It looks like you might be feeling down or sad. Remember that it's completely okay to have low days.",
+    tasks: [
+      "Spend a few minutes resting without any screens or distractions.",
+      "Listen to a soothing playlist or a comforting podcast.",
+      "Make yourself a warm cup of tea or water and take slow, deep breaths."
+    ]
+  },
+  angry: {
+    summary: "There seems to be some tension or frustration present. Let's try to release that physical energy safely.",
+    tasks: [
+      "Do a quick physical release: stretch, do some head rolls, or take a brief walk.",
+      "Try box breathing: inhale for 4 seconds, hold for 4, exhale for 4, hold for 4.",
+      "Write down the source of your frustration on a sheet of paper, then shred or crumple it."
+    ]
+  },
+  anxious: {
+    summary: "You might be feeling anxious, tense, or on edge right now. Let's work on grounding your attention.",
+    tasks: [
+      "Use the 5-4-3-2-1 sensory technique to focus on your physical surroundings.",
+      "Unclench your jaw, drop your shoulders, and relax your hands.",
+      "Inhale slowly for 4 seconds, and exhale for 8 seconds to trigger relaxation."
+    ]
+  },
+  neutral: {
+    summary: "You seem to be in a calm, steady, or neutral emotional state right now.",
+    tasks: [
+      "Take 3 mindful breaths to appreciate this moment of stability.",
+      "Check in on your body's posture and correct any slouching.",
+      "Set one small, focused priority for the rest of your day."
+    ]
+  },
+  fearful: {
+    summary: "It seems like you might be feeling fearful or uneasy today.",
+    tasks: [
+      "Look around and name 3 things that are safe and stable in your room.",
+      "Hold a warm mug or wrap yourself in a blanket for physical comfort.",
+      "Reach out to a trusted friend or your emergency support partner."
+    ]
+  },
+  disgusted: {
+    summary: "There is some irritation or discomfort visible today. Let's clear your space.",
+    tasks: [
+      "Step away from any immediate stressors for at least 5 minutes.",
+      "Splash cold water on your face or rinse your hands.",
+      "Open a window or step outside to get a breath of fresh air."
+    ]
+  },
+  surprised: {
+    summary: "You seem surprised or startled. Let's find your center.",
+    tasks: [
+      "Take a moment to let the surprise settle and check your breathing.",
+      "Ground yourself by placing both feet firmly on the floor.",
+      "Reflect on whether this surprise brings positive or challenging energy."
+    ]
+  }
+};
+
 /* ─── MAIN DASHBOARD ─────────────────────────────────────────── */
 const Dashboard = () => {
   const { user, token, logout } = useAuth();
@@ -95,6 +162,7 @@ const Dashboard = () => {
   const [totalEntries, setTotalEntries]   = useState(0);
   const [summary, setSummary]             = useState('');
   const [tasks, setTasks]                 = useState([]);
+  const [latestSelfie, setLatestSelfie]   = useState(null);
   const [loading, setLoading]             = useState(true);
   const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [showSOSModal, setShowSOSModal]   = useState(false);
@@ -182,12 +250,17 @@ const Dashboard = () => {
       const rawTrends = trendsRes.data.trends || [];
       setTrends(rawTrends);
 
+      // Extract latest selfie mood
+      const allMoods = historyRes.data.moods || [];
+      const latestSelfieMood = allMoods.find(m => m.type === 'selfie');
+      setLatestSelfie(latestSelfieMood || null);
+
       // Normalize average score from [-1,1] range to [0,100]
       const rawAvg = trendsRes.data.averageScore || 0;
       const normalizedAvg = normalizeTo100(rawAvg);
       setAvgScore(normalizedAvg);
 
-      const totalEntriesCount = historyRes.data.moods?.length || rawTrends.length;
+      const totalEntriesCount = allMoods.length || rawTrends.length;
       setTotalEntries(totalEntriesCount);
 
       // Low score auto-alert trigger (<= 20)
@@ -457,6 +530,155 @@ const Dashboard = () => {
                         Log a journal entry or selfie to unlock personalized tasks.
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Mood Selfie Preview and suggestions */}
+            <Card className="p-6 rounded-3xl border border-slate-100 bg-white space-y-5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2.5">
+                  <Camera className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-extrabold text-slate-805 text-lg">Mood Selfie Preview</h3>
+                </div>
+                <button onClick={() => navigate('/selfie')} className="text-base text-indigo-600 font-bold hover:underline">View All</button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Selfie Result Preview block */}
+                <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-100 flex flex-col justify-between">
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-450 uppercase tracking-widest mb-2.5">Latest Selfie Summary</p>
+                    <p className="text-base text-slate-700 leading-relaxed italic line-clamp-4">
+                      {latestSelfie ? (
+                        `"${SELFIE_SUGGESTIONS[latestSelfie.dominantEmotion]?.summary || SELFIE_SUGGESTIONS.neutral.summary}"`
+                      ) : (
+                        `"No selfie logs captured yet. Click a selfie to analyze your facial expressions!"`
+                      )}
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => navigate('/selfie')}
+                    className="w-full mt-4 bg-white hover:bg-slate-50 text-indigo-600 border border-slate-200/80 rounded-xl py-3 px-4 text-sm font-bold shadow-none"
+                  >
+                    Click Selfie
+                  </Button>
+                </div>
+
+                {/* AI Suggestions block */}
+                <div className="space-y-3">
+                  <p className="text-sm font-extrabold text-slate-455 uppercase tracking-widest">Recommended Actions</p>
+                  <div className="space-y-2">
+                    {latestSelfie ? (
+                      (SELFIE_SUGGESTIONS[latestSelfie.dominantEmotion]?.tasks || SELFIE_SUGGESTIONS.neutral.tasks).map((t, idx) => (
+                        <div key={idx} className="bg-slate-50/70 p-3 rounded-xl border border-slate-100/50 flex gap-2.5 items-start hover:bg-slate-100/50 transition-colors">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                          <p className="text-base text-slate-700 font-semibold leading-relaxed">{t}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-center text-sm text-slate-455 italic bg-slate-50/50 rounded-xl">
+                        Log a selfie to unlock personalized tasks based on your expression.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* AI Agent Interaction (AI Companion) */}
+            <Card className="p-6 rounded-3xl border border-slate-100 bg-white space-y-5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-5 h-5 text-indigo-600 animate-pulse" />
+                  <h3 className="font-extrabold text-slate-805 text-lg">AI Companion Chat</h3>
+                </div>
+                <button onClick={() => setShowAIChatModal(true)} className="text-base text-indigo-600 font-bold hover:underline">Chat Now</button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* AI Description block */}
+                <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-100 flex flex-col justify-between">
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-455 uppercase tracking-widest mb-2.5">Empathetic AI Companion</p>
+                    <p className="text-base text-slate-700 font-semibold leading-relaxed">
+                      Need a safe, compassionate, and non-judgmental space to talk? Connect with MindMate AI Wellness Companion for instant mental health support, coping exercises, and wellness guidance.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowAIChatModal(true)}
+                    className="w-full mt-4 bg-white hover:bg-slate-50 text-indigo-600 border border-slate-200/80 rounded-xl py-3 px-4 text-sm font-bold shadow-none"
+                  >
+                    Open AI Chat
+                  </Button>
+                </div>
+
+                {/* AI Companion Capabilities list */}
+                <div className="space-y-3">
+                  <p className="text-sm font-extrabold text-slate-455 uppercase tracking-widest">Companion Capabilities</p>
+                  <div className="space-y-2">
+                    {[
+                      "🌟 24/7 empathetic wellness suggestions & coping strategies",
+                      "🔒 Fully private: on-device pre-classification processing",
+                      "💬 Guided grounding techniques and breathing exercises"
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-slate-50/70 p-3 rounded-xl border border-slate-100/50 flex gap-2.5 items-start hover:bg-slate-100/50 transition-colors">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                        <p className="text-base text-slate-700 font-semibold leading-relaxed">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Messaging (Support Chat) */}
+            <Card className="p-6 rounded-3xl border border-slate-100 bg-white space-y-5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2.5">
+                  <MessageCircle className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-extrabold text-slate-805 text-lg">Support Network Chat</h3>
+                </div>
+                <button 
+                  onClick={() => { setChatContactName(user?.emergencyContact?.name || 'Contact'); setShowChatModal(true); }} 
+                  className="text-base text-indigo-600 font-bold hover:underline"
+                >
+                  Connect Now
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Chat Description block */}
+                <div className="bg-slate-50 rounded-xl p-4.5 border border-slate-100 flex flex-col justify-between">
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-455 uppercase tracking-widest mb-2.5">In-App Partner Chat</p>
+                    <p className="text-base text-slate-700 leading-relaxed font-semibold">
+                      Stay connected with your trusted emergency contact partner {user?.emergencyContact?.name ? `(${user.emergencyContact.name})` : ''} directly within MindMate. Send updates, reactions, or share milestone streaks.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => { setChatContactName(user?.emergencyContact?.name || 'Contact'); setShowChatModal(true); }}
+                    className="w-full mt-4 bg-white hover:bg-slate-50 text-indigo-600 border border-slate-200/80 rounded-xl py-3 px-4 text-sm font-bold shadow-none"
+                  >
+                    Message Partner
+                  </Button>
+                </div>
+
+                {/* Support Network Features list */}
+                <div className="space-y-3">
+                  <p className="text-sm font-extrabold text-slate-455 uppercase tracking-widest">Support network features</p>
+                  <div className="space-y-2">
+                    {[
+                      "🔔 Automated emergency alerts if your mood score drops to ≤ 20%",
+                      "🏆 Streak league milestone sharing to celebrate consistency",
+                      "💬 Encrypted messaging with emoji reactions and typing indicators"
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-slate-50/70 p-3 rounded-xl border border-slate-100/50 flex gap-2.5 items-start hover:bg-slate-100/50 transition-colors">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                        <p className="text-base text-slate-700 font-semibold leading-relaxed">{item}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
