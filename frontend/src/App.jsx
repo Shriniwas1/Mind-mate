@@ -73,11 +73,7 @@ function App() {
             {/* 1. LANDING PAGE - The new entry point */}
             <Route
               path="/"
-              element={
-                <PublicRoute>
-                  <LandingPage />
-                </PublicRoute>
-              }
+              element={<LandingPage />}
             />
 
             {/* 2. AUTH PAGE - For Login/Signup */}

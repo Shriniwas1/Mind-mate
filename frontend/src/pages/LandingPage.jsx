@@ -7,9 +7,11 @@ import {
   Search, Lock, Milestone, Menu
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { useAuth } from '../context/AuthContext';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showResearch, setShowResearch] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -68,18 +70,29 @@ const LandingPage = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/auth')}
-            className="hidden sm:inline-block text-base font-bold text-slate-500 hover:text-indigo-600 transition-colors"
-          >
-            Log in
-          </button>
-          <Button
-            onClick={() => navigate('/auth')}
-            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 text-base font-bold shadow-lg shadow-indigo-500/20"
-          >
-            Get Started <ArrowRight className="ml-1 w-3.5 h-3.5" />
-          </Button>
+          {user ? (
+            <Button
+              onClick={() => navigate('/dashboard')}
+              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 text-base font-bold shadow-lg shadow-indigo-500/20"
+            >
+              Go to Dashboard <ArrowRight className="ml-1 w-3.5 h-3.5" />
+            </Button>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate('/auth')}
+                className="hidden sm:inline-block text-base font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+              >
+                Log in
+              </button>
+              <Button
+                onClick={() => navigate('/auth')}
+                className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 text-base font-bold shadow-lg shadow-indigo-500/20"
+              >
+                Get Started <ArrowRight className="ml-1 w-3.5 h-3.5" />
+              </Button>
+            </>
+          )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-150 flex items-center justify-center text-slate-600 transition-colors"
@@ -122,12 +135,21 @@ const LandingPage = () => {
               Privacy
             </a>
             <hr className="border-slate-100" />
-            <button
-              onClick={() => { setMobileMenuOpen(false); navigate('/auth'); }}
-              className="w-full text-left py-2 hover:text-indigo-600 transition-colors text-indigo-600"
-            >
-              Log in / Sign up
-            </button>
+            {user ? (
+              <button
+                onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
+                className="w-full text-left py-2 hover:text-indigo-650 transition-colors text-indigo-600"
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={() => { setMobileMenuOpen(false); navigate('/auth'); }}
+                className="w-full text-left py-2 hover:text-indigo-600 transition-colors text-indigo-600"
+              >
+                Log in / Sign up
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -155,12 +177,21 @@ const LandingPage = () => {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="flex flex-col sm:flex-row gap-3 justify-center items-center"
         >
-          <Button
-            onClick={() => navigate('/auth')}
-            className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-5 text-base font-semibold group shadow-lg shadow-indigo-500/20"
-          >
-            Try MindMate <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          {user ? (
+            <Button
+              onClick={() => navigate('/dashboard')}
+              className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-5 text-base font-semibold group shadow-lg shadow-indigo-500/20"
+            >
+              Go to Dashboard <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          ) : (
+            <Button
+              onClick={() => navigate('/auth')}
+              className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-5 text-base font-semibold group shadow-lg shadow-indigo-500/20"
+            >
+              Try MindMate <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          )}
           <Button
             onClick={() => setShowResearch(true)}
             variant="ghost"
