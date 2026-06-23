@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth, API } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../components/ui/card';
@@ -173,6 +173,7 @@ const Dashboard = () => {
   const [chatContactName, setChatContactName] = useState(user?.emergencyContact?.name || 'Contact');
   const [showShareModal, setShowShareModal] = useState(false);
   const [showLeagueStructureModal, setShowLeagueStructureModal] = useState(false);
+  const lastFetchRef = useRef(0);
 
   // Synchronize contact name on user load
   useEffect(() => {
@@ -186,9 +187,16 @@ const Dashboard = () => {
     if (token) fetchDashboardData();
 
     // Re-fetch when tab regains focus (covers navigating back from Selfie/Journal/Quiz)
-    const handleFocus = () => { if (token) fetchDashboardData(); };
+    // Throttle to once per 5 seconds to prevent rate limiting (429)
+    const handleFocus = () => {
+      if (token && Date.now() - lastFetchRef.current > 5000) {
+        fetchDashboardData();
+      }
+    };
     const handleVisibility = () => {
-      if (!document.hidden && token) fetchDashboardData();
+      if (!document.hidden && token && Date.now() - lastFetchRef.current > 5000) {
+        fetchDashboardData();
+      }
     };
 
     window.addEventListener('focus', handleFocus);
@@ -239,6 +247,7 @@ const Dashboard = () => {
   const leagueConfig = useMemo(() => getLeagueConfig(computedStreak), [computedStreak]);
 
   const fetchDashboardData = async () => {
+    lastFetchRef.current = Date.now();
     const headers = { Authorization: `Bearer ${token}` };
     try {
       const [trendsRes, journalRes, historyRes] = await Promise.all([
@@ -255,13 +264,13 @@ const Dashboard = () => {
       const latestSelfieMood = allMoods.find(m => m.type === 'selfie');
       setLatestSelfie(latestSelfieMood || null);
 
-      // Normalize average score from [-1,1] range to [0,100]
-      const rawAvg = trendsRes.data.averageScore || 0;
-      const normalizedAvg = normalizeTo100(rawAvg);
-      setAvgScore(normalizedAvg);
-
       const totalEntriesCount = allMoods.length || rawTrends.length;
       setTotalEntries(totalEntriesCount);
+
+      // Normalize average score from [-1,1] range to [0,100]
+      const rawAvg = trendsRes.data.averageScore || 0;
+      const normalizedAvg = totalEntriesCount === 0 ? 0 : normalizeTo100(rawAvg);
+      setAvgScore(normalizedAvg);
 
       // Low score auto-alert trigger (<= 20)
       if (normalizedAvg <= 20 && totalEntriesCount > 0) {

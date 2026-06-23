@@ -58,6 +58,7 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(require('./middleware/requestLogger'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Connection
@@ -73,9 +74,22 @@ if (slashIndex === -1) {
   connectionString = `${mongoUrl}${dbName}`;
 }
 
-mongoose.connect(connectionString)
-  .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+const connectWithRetry = (retries = 5, delay = 5000) => {
+  mongoose.connect(connectionString)
+    .then(() => console.log('✅ MongoDB connected successfully'))
+    .catch((err) => {
+      console.error(`❌ MongoDB connection error: ${err.message}`);
+      if (retries > 0) {
+        console.log(`⏳ Retrying MongoDB connection in ${delay / 1000}s... (${retries} retries left)`);
+        setTimeout(() => connectWithRetry(retries - 1, delay * 1.5), delay);
+      } else {
+        console.error('❌ CRITICAL: MongoDB connection failed after maximum retries. Exiting.');
+        process.exit(1);
+      }
+    });
+};
+
+connectWithRetry();
 
 // ✅ LOAD TEXT SENTIMENT MODEL AT SERVER START
 loadModel()
@@ -88,10 +102,10 @@ loadModel()
 app.locals.io = io;
 
 // ---------------- RATE LIMITERS ----------------
-// General API limiter: max 150 requests per 15 mins
+// General API limiter: max 1000 requests per 15 mins
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 150,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' }

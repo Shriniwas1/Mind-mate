@@ -47,9 +47,15 @@ const AIChatModal = ({ isOpen, onClose, token, userName }) => {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
+      
+      const chatHistory = messages.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
       const response = await axios.post(
         `${API}/ai/chat`,
-        { message: userMessage },
+        { message: userMessage, history: chatHistory },
         { headers }
       );
 

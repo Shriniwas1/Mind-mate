@@ -13,7 +13,7 @@ const groq = new Groq({
 ══════════════════════════════════════════════════════════════ */
 router.post('/chat', authenticate, async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, history = [] } = req.body;
 
     if (!message || !message.trim()) {
       return res.status(400).json({ error: 'Message is required' });
@@ -54,11 +54,21 @@ Never pretend to be a licensed therapist or provide medical diagnoses.`;
       });
     }
 
+    const chatHistory = Array.isArray(history) ? history : [];
+    
+    const formattedHistory = chatHistory.slice(-10).map(h => ({
+      role: h.role === 'assistant' ? 'assistant' : 'user',
+      content: h.content || ''
+    }));
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...formattedHistory,
+      { role: 'user', content: message }
+    ];
+
     const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message },
-      ],
+      messages,
       model: 'llama-3.1-8b-instant',
       max_tokens: 1024,
     });

@@ -24,7 +24,7 @@ export function getSenderId(message) {
   return typeof s === 'object' ? String(s._id) : String(s);
 }
 
-export const useChat = (token, userId) => {
+export const useChat = (token, userId, selectedChatId) => {
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,9 +38,12 @@ export const useChat = (token, userId) => {
 
   // ── Initialize: load chat → load history → connect socket → attach listeners ──
   useEffect(() => {
-    console.log('🔍 [Chat] useChat effect running — token:', !!token, 'userId:', userId);
-    if (!token || !userId) {
-      console.warn('⚠️ [Chat] Skipping init — token or userId missing');
+    console.log('🔍 [Chat] useChat effect running — token:', !!token, 'userId:', userId, 'selectedChatId:', selectedChatId);
+    if (!token || !userId || !selectedChatId) {
+      console.warn('⚠️ [Chat] Skipping init — token, userId, or selectedChatId missing');
+      setChat(null);
+      setMessages([]);
+      setIsConnected(false);
       return;
     }
 
@@ -51,16 +54,16 @@ export const useChat = (token, userId) => {
       try {
         setIsLoading(true);
 
-        // 1. Load or create chat
-        console.log('💬 [Chat] Loading active chat…');
+        // 1. Load chat details
+        console.log('💬 [Chat] Loading selected chat details…');
         const headers = { Authorization: `Bearer ${token}` };
-        const chatRes = await axios.get(`${API}/chat/active`, { headers });
+        const chatRes = await axios.get(`${API}/chat/${selectedChatId}`, { headers });
 
         if (cancelled) return;
 
         if (!chatRes.data.success || !chatRes.data.chat?._id) {
           setError('No chat available');
-          console.error('❌ [Chat] No active chat found');
+          console.error('❌ [Chat] Chat details retrieval failed');
           return;
         }
 
@@ -182,7 +185,7 @@ export const useChat = (token, userId) => {
       cancelled = true;
       cleanupFns.forEach((fn) => fn());
     };
-  }, [token, userId]);
+  }, [token, userId, selectedChatId]);
 
   // ── Send message (with optional reply) ──────────────────
   const sendMessage = useCallback(

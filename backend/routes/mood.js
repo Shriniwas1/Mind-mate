@@ -52,8 +52,12 @@ router.post('/', authenticate, async (req, res) => {
 router.get('/history', authenticate, async (req, res) => {
   try {
     const { days = 30 } = req.query;
+    let daysNum = parseInt(days, 10);
+    if (isNaN(daysNum) || daysNum <= 0) daysNum = 30;
+    if (daysNum > 365) daysNum = 365;
+
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days));
+    startDate.setDate(startDate.getDate() - daysNum);
 
     const moods = await Mood.find({
       userId: req.userId,
@@ -70,8 +74,12 @@ router.get('/history', authenticate, async (req, res) => {
 router.get('/trends', authenticate, async (req, res) => {
   try {
     const { days = 7 } = req.query;
+    let daysNum = parseInt(days, 10);
+    if (isNaN(daysNum) || daysNum <= 0) daysNum = 7;
+    if (daysNum > 365) daysNum = 365;
+
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days));
+    startDate.setDate(startDate.getDate() - daysNum);
 
     const moods = await Mood.find({
       userId: req.userId,

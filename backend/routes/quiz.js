@@ -44,6 +44,10 @@ router.post('/submit', authenticate, async (req, res) => {
   try {
     const { answers } = req.body;
 
+    if (!answers || typeof answers !== 'object') {
+      return res.status(400).json({ error: 'Answers object is required' });
+    }
+
     // Calculate quiz score (0-3 scale, normalize to -1 to 1)
     const scoreMapping = { 0: -0.8, 1: -0.3, 2: 0.3, 3: 0.8 };
     let totalScore = 0;

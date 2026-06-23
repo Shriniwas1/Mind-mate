@@ -6,6 +6,7 @@ const emergencyContactSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   email: { type: String, required: true },
   hasApp: { type: Boolean, default: false },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
 });
 
 const userSchema = new mongoose.Schema({
@@ -16,6 +17,8 @@ const userSchema = new mongoose.Schema({
   emergencyContact: emergencyContactSchema,
   createdAt: { type: Date, default: Date.now }
 });
+
+userSchema.index({ 'emergencyContact.email': 1 });
 
 // FIXED: Removed 'next' because it's an async function
 userSchema.pre('save', async function () {

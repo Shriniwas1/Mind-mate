@@ -42,6 +42,76 @@ router.post('/start', authenticate, async (req, res) => {
 });
 
 /* ══════════════════════════════════════════════════════════════
+   1.5 GET ALL CHAT SESSIONS (PARTNER & FRIENDS)
+   GET /api/chat/sessions
+══════════════════════════════════════════════════════════════ */
+router.get('/sessions', authenticate, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.userId);
+    if (!currentUser) return res.status(404).json({ error: 'User not found' });
+
+    // 1. Get or create chat session with their emergency contact
+    let partnerChat = null;
+    const contact = currentUser.emergencyContact;
+    if (contact && contact.email) {
+      partnerChat = await Chat.findOne({
+        userId: req.userId,
+        contactEmail: contact.email.toLowerCase(),
+      });
+      if (!partnerChat) {
+        partnerChat = await Chat.create({
+          userId: req.userId,
+          contactEmail: contact.email.toLowerCase(),
+          contactPhone: contact.phone,
+          contactName: contact.name,
+          hasAppAccess: contact.hasApp || false,
+        });
+      }
+    }
+
+    // 2. Get chats where the current user is listed as the emergency contact
+    const friendChats = await Chat.find({
+      contactEmail: currentUser.email.toLowerCase(),
+    }).populate('userId', 'name email');
+
+    res.status(200).json({
+      success: true,
+      partnerChat,
+      friendChats,
+    });
+  } catch (error) {
+    console.error('❌ Chat sessions error:', error);
+    res.status(500).json({ error: 'Failed to retrieve chat sessions', details: error.message });
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   1.6 GET SPECIFIC CHAT DETAILS
+   GET /api/chat/:chatId
+══════════════════════════════════════════════════════════════ */
+router.get('/:chatId', authenticate, async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const chat = await Chat.findById(chatId).populate('userId', 'name email');
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+    // Verify user participation
+    const user = await User.findById(req.userId);
+    const isInitiator = String(chat.userId._id || chat.userId) === String(req.userId);
+    const isReceiver = chat.contactEmail === user.email;
+
+    if (!isInitiator && !isReceiver) {
+      return res.status(403).json({ error: 'Unauthorized to view this chat' });
+    }
+
+    res.status(200).json({ success: true, chat });
+  } catch (error) {
+    console.error('❌ Get chat error:', error);
+    res.status(500).json({ error: 'Failed to retrieve chat details', details: error.message });
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
    2. GET CHAT HISTORY
    GET /api/chat/history/:chatId
 ══════════════════════════════════════════════════════════════ */
@@ -129,9 +199,19 @@ router.patch('/:chatId/mark-read', authenticate, async (req, res) => {
   try {
     const { chatId } = req.params;
 
-    // Verify user owns this chat
-    const chat = await Chat.findOne({ _id: chatId, userId: req.userId });
+    // Verify user is in this chat
+    const chat = await Chat.findById(chatId);
     if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isInitiator = String(chat.userId) === String(req.userId);
+    const isReceiver = chat.contactEmail === user.email;
+
+    if (!isInitiator && !isReceiver) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
 
     // Mark all unread messages NOT from this user as read
     await Message.updateMany(

@@ -17,8 +17,8 @@ RUN npm ci --only=production
 # Copy the rest of the application code
 COPY . .
 
-# Remove the local model folder to prevent inflating the docker image size
-RUN rm -rf model
+# Pre-download and bake model weights into the container image
+RUN node server/downloadModel.js
 
 # Set default port to 7860 as expected by Hugging Face Spaces
 ENV PORT=7860

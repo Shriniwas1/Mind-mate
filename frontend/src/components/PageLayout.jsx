@@ -376,7 +376,7 @@ const PageLayout = ({ children, activeTab }) => {
       <div className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto p-4 lg:p-6 space-y-4 lg:space-y-6">
         
         {/* ── Mobile-only top header bar ── */}
-        <header className="flex lg:hidden items-center justify-between flex-shrink-0 -mx-4 -mt-4 px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header className="flex lg:hidden items-center justify-between flex-shrink-0 -mx-4 -mt-4 px-4 py-3 bg-white border-b border-slate-100 z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileNavOpen(true)}

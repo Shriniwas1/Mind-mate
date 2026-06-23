@@ -30,14 +30,29 @@ router.post('/register', async (req, res) => {
       name, 
       emergencyContact: {
         ...emergencyContact,
-        hasApp: contactHasApp
+        hasApp: contactHasApp,
+        status: 'pending'
       },
       profileCompleted: true // Set true immediately as they filled it in signup
     });
     
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '30d' });
+    // Create a notification for the emergency contact user if they have the app
+    if (contactHasApp && emergencyContact && emergencyContact.email) {
+      const contactUser = await User.findOne({ email: emergencyContact.email.toLowerCase() });
+      if (contactUser) {
+        const Notification = require('../models/Notification');
+        await Notification.create({
+          recipient: contactUser._id,
+          sender: user._id,
+          message: `${user.name} has joined MindMate and listed you as their emergency contact partner. Please accept the request to connect.`,
+          isRead: false
+        });
+      }
+    }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -66,7 +81,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '24h' });
 
     res.json({
       token,

@@ -37,14 +37,22 @@ router.post('/sos/in-app', authenticate, async (req, res) => {
     const contact = sender.emergencyContact;
     if (!contact) return res.status(404).json({ error: 'No emergency contact found. Please add one in Safety Settings.' });
 
+    let recipientId = req.userId;
+    if (contact.hasApp && contact.email) {
+      const contactUser = await User.findOne({ email: contact.email.toLowerCase() });
+      if (contactUser) {
+        recipientId = contactUser._id;
+      }
+    }
+
     const notification = await Notification.create({
-      recipient: req.userId,
+      recipient: recipientId,
       sender: req.userId,
       message: `🆘 SOS from ${sender.name}: ${message}`,
       isRead: false,
     });
 
-    console.log(`✅ In-app SOS notification saved for user ${req.userId}`);
+    console.log(`✅ In-app SOS notification saved for recipient ${recipientId}`);
     res.status(200).json({ success: true, notification });
 
   } catch (error) {

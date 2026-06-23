@@ -150,10 +150,18 @@ router.post('/', authenticate, async (req, res) => {
       console.warn('⚠️ Groq fallback triggered:', groqErr.message);
     }
 
-    // Step 3: Calculate scores
+    // Step 3: Calculate scores (using dynamic relative weights to align with research model)
     const textScore = LABEL_TO_MOOD_SCORE[aiResult.label] ?? 0.5;
-    const videoScore = averageVideoScore || 0;
-    const combinedMoodScore = textScore * 0.6 + videoScore * 0.4;
+    
+    let weightedSum = textScore * 0.4;
+    let activeWeight = 0.4;
+
+    if (averageVideoScore && typeof averageVideoScore === 'number' && averageVideoScore > 0) {
+      weightedSum += averageVideoScore * 0.2;
+      activeWeight += 0.2;
+    }
+
+    const combinedMoodScore = weightedSum / activeWeight;
 
     const now = new Date();
     const week = getWeekNumber(now);
@@ -173,7 +181,7 @@ router.post('/', authenticate, async (req, res) => {
         source: finalInsights.source,
       },
       videoEmotions,
-      averageVideoScore: videoScore,
+      averageVideoScore,
       combinedMoodScore,
       week,
       year,
@@ -184,7 +192,7 @@ router.post('/', authenticate, async (req, res) => {
     await Mood.create({
       userId: req.userId,
       textScore,
-      videoScore,
+      videoScore: averageVideoScore,
       finalMoodScore: combinedMoodScore,
       dominantEmotion: aiResult.label || 'Normal',
       type: 'combined',

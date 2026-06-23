@@ -86,13 +86,13 @@ router.get('/report', authenticate, async (req, res) => {
       return res.status(200).json({ hasFriendInNeed: false, friend: null });
     }
 
-    // Fetch friend's recent mood trends (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    // Fetch friend's recent mood trends (last 30 days to align with dashboard)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const recentMoods = await Mood.find({
       userId: friend._id,
-      date: { $gte: sevenDaysAgo },
+      date: { $gte: thirtyDaysAgo },
     }).sort({ date: 1 });
 
     // Calculate average score (normalize from [-1,1] to [0,100])
