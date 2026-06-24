@@ -1,81 +1,13 @@
 const nodemailer = require('nodemailer');
-const axios = require('axios');
 
-/**
- * Universal email sender that supports:
- * 1. Resend API (HTTP Port 443 - works on Hugging Face Spaces)
- * 2. Brevo API (HTTP Port 443 - works on Hugging Face Spaces)
- * 3. Nodemailer SMTP (standard Gmail - times out on Hugging Face due to blocked ports)
- */
-const sendEmail = async ({ to, subject, html, fromName = 'MindMate' }) => {
-  // 1. Resend API
-  if (process.env.RESEND_API_KEY) {
-    const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-    console.log(`✉️ Sending email via Resend API to ${to}...`);
-    try {
-      await axios.post('https://api.resend.com/emails', {
-        from: `"${fromName}" <${fromEmail}>`,
-        to,
-        subject,
-        html,
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        }
-      });
-      return { success: true, method: 'resend' };
-    } catch (err) {
-      console.error('❌ Resend API sending failed:', err.response?.data || err.message);
-      throw err;
-    }
-  }
-
-  // 2. Brevo API
-  if (process.env.BREVO_API_KEY) {
-    const fromEmail = process.env.EMAIL_USER || 'no-reply@mindmate.com';
-    console.log(`✉️ Sending email via Brevo API to ${to}...`);
-    try {
-      await axios.post('https://api.brevo.com/v3/smtp/email', {
-        sender: { name: fromName, email: fromEmail },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-      }, {
-        headers: {
-          'api-key': process.env.BREVO_API_KEY,
-          'Content-Type': 'application/json',
-        }
-      });
-      return { success: true, method: 'brevo' };
-    } catch (err) {
-      console.error('❌ Brevo API sending failed:', err.response?.data || err.message);
-      throw err;
-    }
-  }
-
-  // 3. Fallback to Nodemailer SMTP
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    console.log(`✉️ Sending email via SMTP (Nodemailer) to ${to}...`);
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"${fromName}" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    });
-    return { success: true, method: 'smtp' };
-  }
-
-  throw new Error('No email service configured. Please set RESEND_API_KEY, BREVO_API_KEY, or EMAIL_USER/EMAIL_PASS.');
-};
+// ─── Shared transporter (reuses Gmail credentials already in .env) ────────────
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 
 /**
@@ -144,8 +76,8 @@ const sendOtpEmail = async (to, otp, name) => {
 </body>
 </html>`;
 
-  await sendEmail({
-    fromName: "MindMate",
+  await transporter.sendMail({
+    from: `"MindMate" <${process.env.EMAIL_USER}>`,
     to,
     subject: `${otp} is your MindMate reset code`,
     html,
@@ -340,12 +272,12 @@ const sendWellnessAlertEmail = async (contact, user, avgScore, dominantEmotion, 
 </body>
 </html>`;
 
-  await sendEmail({
-    fromName: "MindMate Wellness Alert",
+  await transporter.sendMail({
+    from: `"MindMate Wellness Alert" <${process.env.EMAIL_USER}>`,
     to: contact.email,
     subject: `🚨 ${user.name} needs your support right now — Wellness: ${avgScore}%`,
     html,
   });
 };
 
-module.exports = { sendOtpEmail, sendWellnessAlertEmail, sendEmail };
+module.exports = { sendOtpEmail, sendWellnessAlertEmail };
