@@ -2,6 +2,7 @@ const express = require('express');
 const Quiz = require('../models/Quiz');
 const Mood = require('../models/Mood');
 const authenticate = require('../middleware/auth');
+const { checkAndTriggerMoodAlerts } = require('../utils/moodAlertHelper');
 const router = express.Router();
 
 // Dynamic quiz questions
@@ -82,6 +83,9 @@ router.post('/submit', authenticate, async (req, res) => {
       type: 'quiz',
     });
     await mood.save();
+
+    // Trigger mood update checks
+    checkAndTriggerMoodAlerts(req.userId).catch(err => console.error('❌ Mood check error:', err));
 
     res.status(201).json({ message: 'Quiz submitted', quizScore, mood });
   } catch (error) {

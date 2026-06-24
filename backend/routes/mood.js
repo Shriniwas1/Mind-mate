@@ -1,6 +1,7 @@
 const express = require('express');
 const Mood = require('../models/Mood');
 const authenticate = require('../middleware/auth');
+const { checkAndTriggerMoodAlerts } = require('../utils/moodAlertHelper');
 const router = express.Router();
 
 // Create mood entry
@@ -41,6 +42,9 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     await mood.save();
+
+    // Trigger mood update checks
+    checkAndTriggerMoodAlerts(req.userId).catch(err => console.error('❌ Mood check error:', err));
 
     res.status(201).json({ message: 'Mood entry created', mood });
   } catch (error) {

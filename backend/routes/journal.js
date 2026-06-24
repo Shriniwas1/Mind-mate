@@ -2,6 +2,7 @@ const express = require('express');
 const Journal = require('../models/Journal');
 const Mood = require('../models/Mood');
 const authenticate = require('../middleware/auth');
+const { checkAndTriggerMoodAlerts } = require('../utils/moodAlertHelper');
 const { predictEmotion } = require('../middleware/classifier');
 const Groq = require('groq-sdk');
 
@@ -200,6 +201,9 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     console.log('✅ Journal + Mood saved. combinedMoodScore:', combinedMoodScore);
+
+    // Trigger mood update checks
+    checkAndTriggerMoodAlerts(req.userId).catch(err => console.error('❌ Mood check error:', err));
 
     res.status(201).json({
       success: true,
