@@ -277,7 +277,12 @@ const Dashboard = () => {
         const sessionStorageKey = `lowScoreAlertTriggered_${user?._id || user?.id}`;
         if (!sessionStorage.getItem(sessionStorageKey)) {
           try {
-            await axios.post(`${API}/friend/low-score-alert`, {}, { headers });
+            await axios.post(`${API}/friend/low-score-alert`, {
+              avgScore: normalizedAvg,
+              dominantEmotion: rawTrends.length > 0
+                ? (rawTrends[rawTrends.length - 1].dominantEmotion || rawTrends[rawTrends.length - 1].emotion || 'Unknown')
+                : 'Unknown',
+            }, { headers });
             sessionStorage.setItem(sessionStorageKey, 'true');
             console.log("🔔 [Low Score Auto-Alert] Successfully triggered alert for emergency contact");
           } catch (alertErr) {
@@ -319,14 +324,32 @@ const Dashboard = () => {
   };
 
   const displayTrends = isChartExpanded ? trends : trends.slice(-7);
+
+  // Determine if there are multiple entries on the same day to show time on label
+  const hasMultipleSameDay = (() => {
+    const dates = displayTrends.map(t => new Date(t.date).toLocaleDateString());
+    return new Set(dates).size < dates.length;
+  })();
+
   const chartData = {
-    labels: displayTrends.map(t => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+    labels: displayTrends.map(t => {
+      const d = new Date(t.date);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (hasMultipleSameDay) {
+        const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `${dateStr} ${timeStr}`;
+      }
+      return dateStr;
+    }),
     datasets: [{
       label: 'Wellness Score',
       data: displayTrends.map(t => normalizeTo100(t.score)),
       borderColor: '#3A6B5E',
       backgroundColor: 'rgba(58, 107, 94, 0.06)',
-      fill: true, tension: 0.45, pointRadius: isChartExpanded ? 2 : 4,
+      fill: true, 
+      tension: 0.4, 
+      pointRadius: isChartExpanded ? 3 : 5,
+      pointHoverRadius: 7,
       pointBackgroundColor: '#3A6B5E',
       pointBorderColor: '#fff',
       pointBorderWidth: 2,

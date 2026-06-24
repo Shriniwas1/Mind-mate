@@ -8,12 +8,12 @@ router.post('/', authenticate, async (req, res) => {
   try {
     const { textScore, selfieScore, videoScore, quizScore, dominantEmotion, type, metadata } = req.body;
 
-    // Calculate final mood score
+    // Calculate final mood score using only the scores that were actually provided
     const scores = [
-      { val: textScore, weight: 0.4 },
+      { val: textScore,  weight: 0.4 },
       { val: selfieScore, weight: 0.3 },
-      { val: videoScore, weight: 0.2 },
-      { val: quizScore, weight: 0.1 },
+      { val: videoScore,  weight: 0.2 },
+      { val: quizScore,   weight: 0.1 },
     ];
 
     let weightedSum = 0;
@@ -70,7 +70,59 @@ router.get('/history', authenticate, async (req, res) => {
   }
 });
 
+// ─── Helper: group mood entries by local calendar day ─────────────────────────
+// Returns an array of { date, score, emotion } — one representative point per day.
+// "score" is the average of all entries that day.
+// "emotion" is the most frequent emotion of the day.
+// This prevents a single day with many selfies from dominating the 30-day average.
+function groupByDay(moods) {
+  const dayMap = new Map();
+
+  moods.forEach(m => {
+    // Use UTC date string as key so timezone quirks don't split a day
+    const dayKey = new Date(m.date).toISOString().slice(0, 10);
+    if (!dayMap.has(dayKey)) {
+      dayMap.set(dayKey, { date: m.date, scores: [], emotions: [] });
+    }
+    const entry = dayMap.get(dayKey);
+    entry.scores.push(m.finalMoodScore);
+    entry.emotions.push(m.dominantEmotion || 'neutral');
+  });
+
+  const days = [];
+  for (const [, entry] of dayMap) {
+    const avgScore = entry.scores.reduce((a, b) => a + b, 0) / entry.scores.length;
+
+    // Pick the most frequent emotion of the day
+    const freq = {};
+    let topEmotion = 'neutral';
+    let topCount = 0;
+    entry.emotions.forEach(e => {
+      freq[e] = (freq[e] || 0) + 1;
+      if (freq[e] > topCount) { topCount = freq[e]; topEmotion = e; }
+    });
+
+    days.push({
+      date: entry.date,
+      score: avgScore,
+      emotion: topEmotion,
+      entryCount: entry.scores.length,
+    });
+  }
+
+  // Keep chronological order
+  days.sort((a, b) => new Date(a.date) - new Date(b.date));
+  return days;
+}
+
 // Get mood trends
+// ─── FIX: now uses daily aggregation instead of flat average ──────────────────
+// Problem with the old approach: if a user clicks 3 sad selfies in one day alongside
+// 1 happy selfie, the simple average gives each entry equal weight. So 3×sad + 1×happy
+// barely moves the needle. With daily grouping, today becomes ONE data point (the avg
+// of all today's entries), so a predominantly-sad day is properly reflected.
+// This also prevents a single high-volume testing day from permanently distorting the
+// 30-day average.
 router.get('/trends', authenticate, async (req, res) => {
   try {
     const { days = 7 } = req.query;
@@ -86,18 +138,29 @@ router.get('/trends', authenticate, async (req, res) => {
       date: { $gte: startDate },
     }).sort({ date: 1 });
 
-    // Calculate trends
-    const trendData = moods.map(m => ({
-      date: m.date,
-      score: m.finalMoodScore,
-      emotion: m.dominantEmotion,
-    }));
+    // Group into one data point per calendar day for overall average calculation
+    const dailyPoints = groupByDay(moods);
 
-    const avgScore = moods.length > 0
-      ? moods.reduce((sum, m) => sum + m.finalMoodScore, 0) / moods.length
+    // Average of daily averages (each day counts equally regardless of entry count)
+    const averageScore = dailyPoints.length > 0
+      ? dailyPoints.reduce((sum, d) => sum + d.score, 0) / dailyPoints.length
       : 0;
 
-    res.json({ trends: trendData, averageScore: avgScore });
+    // Map each individual entry for the chart to show a detailed timeline and smooth curve
+    const trendsMapped = moods.map(m => ({
+      _id: m._id,
+      date: m.date,
+      score: m.finalMoodScore,
+      dominantEmotion: m.dominantEmotion,
+      type: m.type,
+    }));
+
+    res.json({
+      trends: trendsMapped,     // all individual entries for the timeline chart
+      averageScore,             // average of daily averages for the dashboard ring
+      rawEntryCount: moods.length,
+      dailyPointCount: dailyPoints.length,
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch mood trends', details: error.message });
   }
@@ -115,7 +178,7 @@ router.get('/critical-check', authenticate, async (req, res) => {
     }
 
     const avgRecentScore = recentMoods.reduce((sum, m) => sum + m.finalMoodScore, 0) / recentMoods.length;
-    const hasNegativeEmotions = recentMoods.some(m => 
+    const hasNegativeEmotions = recentMoods.some(m =>
       ['sad', 'angry', 'fearful'].includes(m.dominantEmotion)
     );
 

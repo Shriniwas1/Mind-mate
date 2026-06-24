@@ -246,7 +246,7 @@ const QuizPage = () => {
               {/* Category accent strip */}
               <div className="h-1" style={{ background: catColor }} />
 
-              <div className="p-8 md:p-10">
+              <div className="p-5 sm:p-8 md:p-10">
                 <div className="mb-6">
                   <span
                     className="inline-block text-xs font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4"

@@ -359,7 +359,7 @@ const JournalPage = () => {
                     </p>
                   </div>
 
-                  <div className="flex gap-3 mt-6">
+                  <div className="flex flex-col sm:flex-row gap-3 mt-6">
                     <div className="bg-black/15 backdrop-blur px-4 py-3 rounded-xl flex-1">
                       <p className="text-[11px] uppercase font-extrabold opacity-60 mb-1">Confidence</p>
                       <p className="text-2xl font-bold">

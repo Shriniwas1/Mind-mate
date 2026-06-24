@@ -23,9 +23,25 @@ const getEmotionColor = (emotion) => ({
   fearful: '#8B5CF6', disgusted: '#10B981', surprised: '#F59E0B'
 }[emotion] || '#64748B');
 
+// Selfie emotion → mood score mapping.
+// Calibrated to match the journal's LABEL_TO_MOOD_SCORE [0, 1] space so that
+// the dashboard normalizeTo100 treats them consistently:
+//   happy    → 0.85  (≈ journal "Normal" 0.8)
+//   surprised → 0.60  (unexpectedly positive)
+//   neutral  → 0.50  (mid-point, not distressing)
+//   sad      → 0.15  (≈ journal "Depression" 0.2)
+//   fearful  → 0.12  (below Depression)
+//   disgusted → 0.12
+//   angry    → 0.10  (most negative, near journal "Suicidal" 0.05)
 const getEmotionMoodScore = (emotion) => ({
-  happy: 9, surprised: 6, neutral: 5, sad: 3, fearful: 2, disgusted: 2, angry: 2
-}[emotion] || 5);
+  happy: 0.85,
+  surprised: 0.60,
+  neutral: 0.50,
+  sad: 0.15,
+  fearful: 0.12,
+  disgusted: 0.12,
+  angry: 0.10,
+}[emotion] ?? 0.50);
 
 const SelfiePage = () => {
   const [capturing, setCapturing] = useState(false);
@@ -191,22 +207,24 @@ const SelfiePage = () => {
     setResult(finalResult);
 
     try {
-      const moodScoreNormalized = (finalResult.dominant.moodScore - 1) / 8; 
-      await axios.post(`${API}/mood`, {
-        selfieScore: moodScoreNormalized,
-        finalMoodScore: moodScoreNormalized,
-        dominantEmotion: finalResult.dominant.emotion,
-        type: 'selfie',
-        metadata: {
-          confidence: finalResult.dominant.confidence,
-          emoji: finalResult.dominant.emoji,
-        },
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log('✅ Selfie mood saved to backend');
-      toast.success(`Mood detected: ${finalResult.dominant.emotion} ${finalResult.dominant.emoji}`);
-    } catch (saveErr) {
+    // moodScore is already in [0, 1] — same space as journal scores.
+    // Do NOT apply the old (score - 1) / 8 rescaling; that was the bug.
+    const moodScore = getEmotionMoodScore(finalResult.dominant.emotion);
+    await axios.post(`${API}/mood`, {
+      selfieScore: moodScore,
+      finalMoodScore: moodScore,
+      dominantEmotion: finalResult.dominant.emotion,
+      type: 'selfie',
+      metadata: {
+        confidence: finalResult.dominant.confidence,
+        emoji: finalResult.dominant.emoji,
+      },
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log(`✅ Selfie mood saved — emotion: ${finalResult.dominant.emotion}, score: ${moodScore}`);
+    toast.success(`Mood detected: ${finalResult.dominant.emotion} ${finalResult.dominant.emoji}`);
+  } catch (saveErr) {
       console.warn('⚠️ Failed to save selfie mood:', saveErr.message);
     }
   };

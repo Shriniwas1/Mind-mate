@@ -15,7 +15,10 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   profileCompleted: { type: Boolean, default: false },
   emergencyContact: emergencyContactSchema,
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  // Password reset via OTP
+  resetOtp: { type: String, default: null },          // bcrypt-hashed 6-digit OTP
+  resetOtpExpiry: { type: Date, default: null },       // expires 10 minutes after generation
 });
 
 userSchema.index({ 'emergencyContact.email': 1 });

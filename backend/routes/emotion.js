@@ -16,14 +16,23 @@ const upload = multer({
 });
 
 // ── Emotion config ───────────────────────────────
+// moodScore values are in [0, 1] — same space as journal LABEL_TO_MOOD_SCORE
+// so that the dashboard normalizeTo100() treats all mood sources consistently:
+//   happy    → 0.85  (≈ journal "Normal" 0.8)
+//   surprise → 0.60  (positive surprise)
+//   neutral  → 0.50  (mid-point)
+//   sad      → 0.15  (≈ journal "Depression" 0.2)
+//   fear     → 0.12  (below Depression)
+//   disgust  → 0.12
+//   angry    → 0.10  (most negative, near journal "Suicidal" 0.05)
 const EMOTIONS = [
-  { key: 'angry', emoji: '😠', color: '#FF6B6B', moodScore: 2 },
-  { key: 'disgust', emoji: '🤢', color: '#90EE90', moodScore: 2 },
-  { key: 'fear', emoji: '😰', color: '#DDA0DD', moodScore: 2 },
-  { key: 'happy', emoji: '😊', color: '#FFD700', moodScore: 9 },
-  { key: 'sad', emoji: '😢', color: '#6495ED', moodScore: 3 },
-  { key: 'surprise', emoji: '😮', color: '#FFA500', moodScore: 6 },
-  { key: 'neutral', emoji: '😐', color: '#87CEEB', moodScore: 5 }
+  { key: 'angry',    emoji: '😠', color: '#FF6B6B', moodScore: 0.10 },
+  { key: 'disgust',  emoji: '🤢', color: '#90EE90', moodScore: 0.12 },
+  { key: 'fear',     emoji: '😰', color: '#DDA0DD', moodScore: 0.12 },
+  { key: 'happy',    emoji: '😊', color: '#FFD700', moodScore: 0.85 },
+  { key: 'sad',      emoji: '😢', color: '#6495ED', moodScore: 0.15 },
+  { key: 'surprise', emoji: '😮', color: '#FFA500', moodScore: 0.60 },
+  { key: 'neutral',  emoji: '😐', color: '#87CEEB', moodScore: 0.50 },
 ];
 
 const fs = require('fs');

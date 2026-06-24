@@ -5,8 +5,8 @@ const User = require('../models/User');
 const Mood = require('../models/Mood');
 const Journal = require('../models/Journal');
 const Notification = require('../models/Notification');
-const nodemailer = require('nodemailer');
 const twilio = require('twilio');
+const { sendWellnessAlertEmail } = require('../utils/emailService');
 
 /* ─── Twilio lazy init ────────────────────────────────────────── */
 const getTwilioClient = () => {
@@ -15,15 +15,6 @@ const getTwilioClient = () => {
   if (!sid || !token || !sid.startsWith('AC')) return null;
   return twilio(sid, token);
 };
-
-/* ─── Nodemailer transporter ──────────────────────────────────── */
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 /* ─── Support task suggestion pool (rotated per request) ─────── */
 const SUPPORT_TASKS = [
@@ -196,6 +187,10 @@ router.post('/low-score-alert', authenticate, async (req, res) => {
     const contact = user.emergencyContact;
     if (!contact) return res.status(200).json({ sent: false, reason: 'No emergency contact' });
 
+    // Read real-time score/emotion passed by the frontend
+    const avgScore = typeof req.body.avgScore === 'number' ? Math.round(req.body.avgScore) : 17;
+    const dominantEmotion = req.body.dominantEmotion || 'Unknown';
+
     // Throttle: check if we already sent a low-score alert in the last 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentAlert = await Notification.findOne({
@@ -229,42 +224,19 @@ router.post('/low-score-alert', authenticate, async (req, res) => {
         console.log(`✅ [Low Score Alert] In-app notification created for ${contactUser.name}`);
       }
     } else {
-      // Send email if configured
+      // Send rich wellness alert email
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS && contact.email) {
         try {
-          await transporter.sendMail({
-            from: `"MindMate Wellness" <${process.env.EMAIL_USER}>`,
-            to: contact.email,
-            subject: `💛 ${user.name} may need your support today`,
-            html: `
-              <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:28px;border:1.5px solid #F59E0B;border-radius:14px;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-                  <span style="font-size:28px;">💛</span>
-                  <h2 style="margin:0;color:#92400E;font-size:18px;">Wellness Check from MindMate</h2>
-                </div>
-                <p style="color:#374151;font-size:15px;line-height:1.6;">
-                  Hi <strong>${contact.name}</strong>,
-                </p>
-                <p style="color:#374151;font-size:15px;line-height:1.6;">
-                  We noticed that <strong>${user.name}</strong>'s wellness score has dropped significantly today. 
-                  They may be going through a tough time and could really use a friendly check-in.
-                </p>
-                <div style="background:#FFFBEB;border-left:4px solid #F59E0B;padding:16px;border-radius:8px;margin:20px 0;">
-                  <p style="margin:0;color:#78350F;font-size:14px;">
-                    <strong>What you can do:</strong><br/>
-                    A simple text, call, or message can make a huge difference.
-                    You don't need the perfect words — just showing up is enough.
-                  </p>
-                </div>
-                <p style="color:#6B7280;font-size:12px;margin-top:24px;border-top:1px solid #E5E7EB;padding-top:16px;">
-                  This alert was sent because ${user.name} listed you as their trusted emergency contact in MindMate. 
-                  Their data is private and we only share this score threshold trigger.
-                </p>
-              </div>
-            `,
-          });
+          const appUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+          await sendWellnessAlertEmail(
+            contact,
+            user,
+            avgScore,
+            dominantEmotion,
+            appUrl
+          );
           emailSent = true;
-          console.log(`✅ [Low Score Alert] Email sent to ${contact.email}`);
+          console.log(`✅ [Low Score Alert] Rich wellness email sent to ${contact.email} (score: ${avgScore}%, emotion: ${dominantEmotion})`);
         } catch (emailErr) {
           console.warn(`⚠️ [Low Score Alert] Email failed: ${emailErr.message}`);
         }
