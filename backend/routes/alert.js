@@ -3,8 +3,8 @@ const router = express.Router();
 const authenticate = require('../middleware/auth');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
 const twilio = require('twilio');
+const { sendEmail } = require('../utils/emailService');
 
 /* ─── Twilio lazy init ────────────────────────────────────────── */
 const getTwilioClient = () => {
@@ -13,15 +13,6 @@ const getTwilioClient = () => {
   if (!sid || !token || !sid.startsWith('AC')) return null;
   return twilio(sid, token);
 };
-
-/* ─── Nodemailer transporter ──────────────────────────────────── */
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 /* ══════════════════════════════════════════════════════════════
    1. IN-APP MESSAGE
@@ -69,8 +60,8 @@ router.post('/sos/email', authenticate, async (req, res) => {
   try {
     const { message } = req.body;
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      return res.status(500).json({ error: 'Email not configured on server' });
+    if (!process.env.RESEND_API_KEY && !process.env.BREVO_API_KEY && (!process.env.EMAIL_USER || !process.env.EMAIL_PASS)) {
+      return res.status(500).json({ error: 'Email sending is not configured on the server. Please set up RESEND_API_KEY, BREVO_API_KEY, or EMAIL_USER/EMAIL_PASS.' });
     }
 
     const sender = await User.findById(req.userId);
@@ -82,8 +73,8 @@ router.post('/sos/email', authenticate, async (req, res) => {
     const recipientEmail = contact.email;
     if (!recipientEmail) return res.status(404).json({ error: 'Emergency contact has no email address' });
 
-    await transporter.sendMail({
-      from: `"MindMate SOS" <${process.env.EMAIL_USER}>`,
+    await sendEmail({
+      fromName: "MindMate SOS",
       to: recipientEmail,
       subject: `🆘 SOS Alert from ${sender.name}`,
       html: `
@@ -146,24 +137,62 @@ router.post('/sos/sms', authenticate, async (req, res) => {
 */
 router.get('/test-email', async (req, res) => {
   try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Email environment variables (EMAIL_USER or EMAIL_PASS) are missing.' 
+    const testRecipient = req.query.to || process.env.EMAIL_USER || 'test@example.com';
+    
+    if (process.env.RESEND_API_KEY) {
+      const result = await sendEmail({
+        to: testRecipient,
+        subject: 'MindMate Email Test (Resend)',
+        html: '<p>This is a diagnostic test email from your MindMate deployment on Hugging Face using Resend API!</p>',
+        fromName: 'MindMate Diagnostic'
+      });
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully sent diagnostic test email via Resend API!',
+        details: result
       });
     }
-    
-    await transporter.verify();
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'SMTP server connection is successful and ready to send emails!' 
+    if (process.env.BREVO_API_KEY) {
+      const result = await sendEmail({
+        to: testRecipient,
+        subject: 'MindMate Email Test (Brevo)',
+        html: '<p>This is a diagnostic test email from your MindMate deployment on Hugging Face using Brevo API!</p>',
+        fromName: 'MindMate Diagnostic'
+      });
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully sent diagnostic test email via Brevo API!',
+        details: result
+      });
+    }
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+      await transporter.verify();
+      return res.status(200).json({
+        success: true,
+        message: 'SMTP connection (Nodemailer) verified successfully!'
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      error: 'No email service is configured. Set RESEND_API_KEY, BREVO_API_KEY, or EMAIL_USER/EMAIL_PASS.'
     });
+
   } catch (error) {
-    console.error('❌ SMTP verification failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'SMTP verification failed', 
+    console.error('❌ Email test connection failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Email test connection failed',
       details: error.message,
       code: error.code,
       command: error.command
