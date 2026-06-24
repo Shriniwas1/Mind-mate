@@ -1,13 +1,5 @@
-const nodemailer = require('nodemailer');
 const twilio = require('twilio');
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const { sendEmail } = require('./emailService');
 
 const getTwilioClient = () => {
   const sid = process.env.TWILIO_SID;
@@ -27,10 +19,10 @@ module.exports = async function notifyOfflineContact(contact, message, senderNam
     }
 
     // Try email first
-    if (contact.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (contact.email && (process.env.RESEND_API_KEY || process.env.BREVO_API_KEY || (process.env.EMAIL_USER && process.env.EMAIL_PASS))) {
       try {
-        await transporter.sendMail({
-          from: `"MindMate Chat" <${process.env.EMAIL_USER}>`,
+        await sendEmail({
+          fromName: "MindMate Chat",
           to: contact.email,
           subject: `💬 New message from ${senderName}`,
           html: `
