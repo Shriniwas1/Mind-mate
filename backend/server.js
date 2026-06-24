@@ -3,11 +3,19 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Ensure critical environment variables are set and secure in production
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET || (process.env.NODE_ENV === 'production' && JWT_SECRET === 'mindmate_secret_key_change_in_production')) {
-  console.error("❌ CRITICAL SETUP ERROR: JWT_SECRET environment variable is missing or insecure in production!");
-  process.exit(1);
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("⚠️ WARNING: JWT_SECRET environment variable is missing in production! Generating a temporary random secret. Note: Server restarts will invalidate active user sessions.");
+    process.env.JWT_SECRET = require('crypto').randomBytes(32).toString('hex');
+  } else {
+    process.env.JWT_SECRET = 'mindmate_development_secret_key';
+  }
+} else if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET === 'mindmate_secret_key_change_in_production') {
+  console.warn("⚠️ WARNING: JWT_SECRET environment variable is set to the default insecure value in production! Generating a temporary random secret for security.");
+  process.env.JWT_SECRET = require('crypto').randomBytes(32).toString('hex');
 }
+const JWT_SECRET = process.env.JWT_SECRET;
+
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -20,6 +28,9 @@ const setupChatHandlers = require('./io/chatHandler.js');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
+// Trust proxy settings (required for express-rate-limit behind Hugging Face reverse proxy)
+app.set('trust proxy', 1);
+
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
@@ -83,8 +94,7 @@ const connectWithRetry = (retries = 5, delay = 5000) => {
         console.log(`⏳ Retrying MongoDB connection in ${delay / 1000}s... (${retries} retries left)`);
         setTimeout(() => connectWithRetry(retries - 1, delay * 1.5), delay);
       } else {
-        console.error('❌ CRITICAL: MongoDB connection failed after maximum retries. Exiting.');
-        process.exit(1);
+        console.error('❌ CRITICAL: MongoDB connection failed after maximum retries. The server will remain running, but database operations will fail.');
       }
     });
 };
