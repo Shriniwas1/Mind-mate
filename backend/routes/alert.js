@@ -141,4 +141,43 @@ router.post('/sos/sms', authenticate, async (req, res) => {
   }
 });
 
+/* ─── TEST EMAIL CONNECTION ───
+   GET /api/alert/test-email
+*/
+router.get('/test-email', async (req, res) => {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email environment variables (EMAIL_USER or EMAIL_PASS) are missing.' 
+      });
+    }
+    
+    // Verify connection configuration
+    await new Promise((resolve, reject) => {
+      transporter.verify((error, success) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(success);
+        }
+      });
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'SMTP server connection is successful and ready to send emails!' 
+    });
+  } catch (error) {
+    console.error('❌ SMTP verification failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'SMTP verification failed', 
+      details: error.message,
+      code: error.code,
+      command: error.command
+    });
+  }
+});
+
 module.exports = router;
